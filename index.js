@@ -32,8 +32,8 @@ module.exports = class Cutecord extends Plugin {
     inject('cutcord-getMember', getMember, 'getMember', (args, res) => {
 
       if (res && res.userId && res.roles && res.userId === user) {
-        if (!res.roles.includes('cute role')) {
-          res.roles.push('cute role')
+        if (!res.roles.includes('9999999999999999')) {
+          res.roles.push('9999999999999999')
         }
         if (!res.nick || !res.nick.startsWith('cute')) {
           res.nick = 'cute ' + res.nick || ''
@@ -45,17 +45,17 @@ module.exports = class Cutecord extends Plugin {
     const getGuild = await getModule([ 'getGuild' ])
     inject('cutecord-getGuild', getGuild, 'getGuild', (args, res) => {
       if (res && res.roles) {
-        res.roles['cute role'] = {
+        res.roles['9999999999999999'] = {
           color: 9055202,
           colorString: "#8a2be2",
           hoist: true,
-          id: "cute role",
+          id: '9999999999999999',
           managed: false,
           mentionable: false,
           name: "cute 🌺",
           originalPosition: 1000,
           permissions: 0,
-          position: 999
+          position: 1000
         }
       }
       return res
