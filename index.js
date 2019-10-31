@@ -3,7 +3,7 @@ const { getModule } = require('powercord/webpack')
 const {inject, uninject} = require("powercord/injector")
 const Cute = require('./cute.jsx')
 
-const user = '250322741406859265'
+const user = '215067938452013056'
 
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
