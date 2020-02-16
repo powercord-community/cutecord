@@ -7,7 +7,7 @@ logic so you can control who you get notifications from and when.
 - Allow notifications from specific users to bypass DND owo
 - Block other users from your notifications entirely òwó
 - Don't recieve notifications when you're invisible uwu
-- y'all cute
+- Most of y'all cute :D (Except Spud D:<)
 
 cutecord expects a comma separated list of snowflakes in it's
 configuration. This isn't the most cutest way to set it up but
