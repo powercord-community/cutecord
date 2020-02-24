@@ -28,7 +28,7 @@ for (let key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v2.1.0'
+    const ver = 'v2.1.1'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
@@ -181,6 +181,19 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
+    const override = this.settings.get('overrides', 'default')
+
+    let status = getStatus()
+
+    if (this.settings.get('invisibleIsDND', false) && status === StatusTypes.INVISIBLE) {
+      status = StatusTypes.DND
+    }
+
+    // If they want pure default notifications, we check here
+    if (override === 'default') {
+      return status !== StatusTypes.DND
+    }
+
     // Here's the magic part :zoomeyes:
     if (this.settings.get('cuteUsers', []).includes(msgAuthor.id)) {
       return true
@@ -194,15 +207,7 @@ module.exports = class Cutecord extends Plugin {
       return true
     }
 
-    const override = this.settings.get('overrides', 'default')
-
-    let status = getStatus()
-
-    if (this.settings.get('invisibleIsDND', false) && status === StatusTypes.INVISIBLE) {
-      status = StatusTypes.DND
-    }
-
-    if (override === 'default') {
+    if (override === 'cute') {
       return status !== StatusTypes.DND
     }
 

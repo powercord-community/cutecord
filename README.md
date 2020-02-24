@@ -20,6 +20,19 @@ install as you would any other powercord plugin, with
 
 ---
 ## Changelog
+### v2.1.1
+This is a smaller update - several fixes to CSS have been made, and issues
+with compatibility with other plugins have been covered as well.
+
+Some clarifications to configuration have also been made. The `Default
+Discord` option has been renamed to `Pure Discord
+default`. It now exactly reflects Discord's default implementation -
+you won't get notifications from any cute users, it'll be just like normal.
+However, a new configuration option has also been added, `Cute
+notifications`. This has the same functionality that `Default
+Discord` had, but it's been renamed to hopefully clear up some
+confusion.
+
 ### v2.1.0
 Yay! The first feature update is here òwó
 - Allows you to mark roles as uncute (no more mod ping aboos uwu)

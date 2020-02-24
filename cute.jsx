@@ -28,8 +28,9 @@ module.exports = class Settings extends React.Component {
       <RadioGroup
       disabled={ false }
         options={ [
-          { name: 'Discord default', value: 'default' },
-          { name: 'Override DND', value: 'dnd' },
+          { name: 'Pure Discord default', value: 'default' },
+          { name: 'Cute notifications', value: 'cute' },
+          { name: 'Override DND with all notifications', value: 'dnd' },
           { name: 'No notifications', value: 'none' }
         ] }
         value={ this.state.overrides }
