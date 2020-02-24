@@ -78,7 +78,7 @@ module.exports = class Cutecord extends Plugin {
     uninject('cutecord-shouldNotify')
     uninject('cutecord-members')
     uninject('cutecord-messages')
-    uninject('cutecord-dms')
+    uninject('cutecord-dm')
   }
 
   // If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
@@ -242,10 +242,18 @@ module.exports = class Cutecord extends Plugin {
       if (!_this.settings.get('dms', true)) {
         return res
       }
-      res.props.name = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
-        React.createElement('span', null, res.props.name),
-        React.createElement(_this.ConnectedBadges, { user: this.props.user })
-      ])
+      if (res.props.name.props) {
+        res.props.name.props.children.splice(1, 0,
+          React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
+            React.createElement(_this.ConnectedBadges, { user: this.props.user })
+          ])
+        )
+      } else {
+        res.props.name = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
+          React.createElement('span', null, res.props.name),
+          React.createElement(_this.ConnectedBadges, { user: this.props.user })
+        ])  
+      }
       return res
     })
   }
@@ -258,10 +266,10 @@ module.exports = class Cutecord extends Plugin {
         return res
       }
 
-      // eslint-disable-next-line prefer-destructuring
-      res.props.children[4] = res.props.children[3]
-      res.props.children[3] = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
-        React.createElement(this.ConnectedBadges, { user: args[0].message.author })
+      res.props.children[2].props.children.splice(2, 0,
+        React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
+          React.createElement(this.ConnectedBadges, { user: args[0].message.author })
+        )
       )
       return res
     })

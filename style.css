@@ -3,8 +3,13 @@
   display: inline;
 }
 
-.privateChannels-1nO12o .cutecord-badges {
-  display: flex;
+.cutecord-badges ~ .botTagRegular-2HEhHi {
+  margin-left: 8px;
+}
+
+.privateChannels-1nO12o .cutecord-badges, .badges > .cutecord-badges {
+  margin-right: 3px;
+  height: 20px!important;
 }
 
 .cutecord-cute-user {
