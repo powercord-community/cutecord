@@ -1,4 +1,4 @@
-.cutecord-badges {
+.cutecord-badges, .cutecord-badges.topSectionNormal-2-vo2m {
   background: none;
   display: inline;
 }
@@ -8,13 +8,13 @@
 }
 
 .privateChannels-1nO12o .cutecord-badges, .badges > .cutecord-badges {
-  margin-right: 3px;
   height: 20px!important;
+  width: auto!important;
 }
 
 .cutecord-cute-user {
  display: inline;
- margin-left: 4px;
+ margin-left: 7px;
  padding-left: 1em;
  background: url('https://canary.discordapp.com/assets/07302a0ce95bfc27d75e6d9748f7c3c4.svg') 50% no-repeat;
  background-size: contain;
