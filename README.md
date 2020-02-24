@@ -20,8 +20,18 @@ install as you would any other powercord plugin, with
 
 ---
 ## Changelog
+### v2.1.0
+Yay! The first feature update is here òwó
+- Allows you to mark roles as uncute (no more mod ping aboos uwu)
+- keywords are working now!
+- Cute users are now even more cute! (they now have a flower badge displayed
+next to their name owo)
+  ![Messages](https://i.imgur.com/LVf21qm.png)
+  ![Member list](https://i.imgur.com/o6g5qsP.png)
+
 ### v2.0.0
-The first update! Adds some actual features and unhecks the plugin in general uwu.
+The first update! Adds some actual features and unhecks the plugin in general
+uwu.
 - Adds cute users, channels, and guilds, as well as their uncute counterparts
 - Add more fine grained notification control in general
 - removed things about certain people being cute

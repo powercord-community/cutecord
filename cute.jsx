@@ -14,6 +14,7 @@ module.exports = class Settings extends React.Component {
       overrides: this.props.getSetting('overrides', 'default'),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
+      displayFlower: this.props.getSetting('displayFlower', false),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
@@ -103,9 +104,8 @@ module.exports = class Settings extends React.Component {
         <TextInput
           defaultValue={ this.props.getSetting('cuteWords', ['owo', 'uwu']).join(', ') }
           onChange={u => this.props.updateSetting('cuteWords', u.split(',').map(id => id.trim()))}
-          disabled={true}
         >
-          Keywords (coming soon uwu)
+          Keywords
         </TextInput>
       </Category>
 
@@ -134,11 +134,16 @@ module.exports = class Settings extends React.Component {
           Channels
         </TextInput>
         <TextInput
+          defaultValue={ this.props.getSetting('uncuteRoles', []).join(', ') }
+          onChange={u => this.props.updateSetting('uncuteRoles', u.split(',').map(id => id.trim()))}
+        >
+          Roles
+        </TextInput>
+        <TextInput
           defaultValue={ this.props.getSetting('uncuteWords', []).join(', ') }
           onChange={u => this.props.updateSetting('uncuteWords', u.split(',').map(id => id.trim()))}
-          disabled={true}
         >
-          Keywords (coming soon uwu)
+          Keywords
         </TextInput>
       </Category>
 
@@ -169,6 +174,17 @@ module.exports = class Settings extends React.Component {
           }}
         >
           Managed Channels
+        </SwitchItem>
+        <SwitchItem
+          note="Displays a 🌺 next to cute users."
+          style={{ marginTop: '16px' }}
+          value={this.state.displayFlower}
+          onChange={() => {
+            this.setState({ displayFlower: !this.state.displayFlower })
+            this.props.toggleSetting('displayFlower')
+          }}
+        >
+          Cutecord Flower
         </SwitchItem>
       </Category>
       

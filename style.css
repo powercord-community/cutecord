@@ -1,0 +1,12 @@
+.cutecord-badges {
+  background: none;
+  display: inline;
+}
+
+.cutecord-cute-user {
+ display: inline;
+ margin-left: 4px;
+ padding-left: 1em;
+ background: url('https://canary.discordapp.com/assets/07302a0ce95bfc27d75e6d9748f7c3c4.svg') 50% no-repeat;
+ background-size: contain;
+}

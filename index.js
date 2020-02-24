@@ -1,7 +1,9 @@
 const { Plugin } = require('powercord/entities')
-const { getModule } = require('powercord/webpack')
+const { getModule, getModuleByDisplayName, React } = require('powercord/webpack')
 const { inject, uninject } = require("powercord/injector")
 const Cute = require('./cute.jsx')
+const Flower = require('./flower.jsx')
+const { resolve } = require('path')
 
 // Get all the modules we need (there's a lot)
 const shouldNotify = getModule([ 'makeTextChatNotification' ], false)
@@ -26,7 +28,7 @@ for (let key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v2.0.0'
+    const ver = 'v2.1.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
@@ -38,7 +40,7 @@ module.exports = class Cutecord extends Plugin {
             require('electron').shell.openExternal('https://cute.gordhoard.org')
           }
         }
-      });
+      })
     }
 
     // uwu
@@ -62,10 +64,21 @@ module.exports = class Cutecord extends Plugin {
     })
 
     this.registerSettings('cutecord', 'Cutecord', Cute)
+
+    this.classes = await getModule([ 'profileBadgeStaff' ])
+    this.ConnectedBadges = this.settings.connectStore(Flower)
+    this._injectMembers()
+    this._injectMessages()
+    this._injectDMs()
+
+    this.loadCSS(resolve(__dirname, 'style.css'))
   }
 
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
+    uninject('cutecord-members')
+    uninject('cutecord-messages')
+    uninject('cutecord-dms')
   }
 
   // If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
@@ -102,6 +115,29 @@ module.exports = class Cutecord extends Plugin {
       const guildID = getGuildId(channel.id)
       if (channel.id === getChannelId(guildID)) {
         return false
+      }
+    }
+
+    const uncuteRoles = this.settings.get('uncuteRoles', [])
+    for (const r in uncuteRoles) {
+      if (msg.content.includes(`<@&${uncuteRoles[r]}>`)) {
+        return false
+      }
+    }
+
+
+    const uncuteWords = this.settings.get('uncuteWords', [])
+    for (const w in uncuteWords) {
+      if (msg.content.includes(uncuteWords[w])) {
+        return false
+      }
+    }
+
+
+    const cuteWords = this.settings.get('cuteWords', [])
+    for (const w in cuteWords) {
+      if (msg.content.includes(cuteWords[w])) {
+        return true
       }
     }
 
@@ -180,5 +216,55 @@ module.exports = class Cutecord extends Plugin {
 
     // Just in case I guess
     return false
+  }
+
+  /**
+   * Thank you bowser for your amazing badges everywhere plugin I would have
+   * never been able to figure this out.
+   */
+  async _injectMembers () {
+    const _this = this
+    const MemberListItem = await getModuleByDisplayName('MemberListItem')
+    inject('cutecord-members', MemberListItem.prototype, 'renderDecorators', function (args, res) {
+      res.props.children.unshift(
+        React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
+          React.createElement(_this.ConnectedBadges, { user: this.props.user })
+        )
+      )
+      return res
+    })
+  }
+  
+  async _injectDMs () {
+    const _this = this
+    const PrivateChannel = await getModuleByDisplayName('PrivateChannel')
+    inject('cutecord-dm', PrivateChannel.prototype, 'render', function (args, res) {
+      if (!_this.settings.get('dms', true)) {
+        return res
+      }
+      res.props.name = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
+        React.createElement('span', null, res.props.name),
+        React.createElement(_this.ConnectedBadges, { user: this.props.user })
+      ])
+      return res
+    })
+  }
+
+  async _injectMessages () {
+    const _this = this
+    const MessageHeader = await getModule(m => m.default && m.default.displayName === 'MessageHeader')
+    inject('cutecord-messages', MessageHeader, 'default', (args, res) => {
+      if (!_this.settings.get('messages', true)) {
+        return res
+      }
+
+      // eslint-disable-next-line prefer-destructuring
+      res.props.children[4] = res.props.children[3]
+      res.props.children[3] = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
+        React.createElement(this.ConnectedBadges, { user: args[0].message.author })
+      )
+      return res
+    })
+    MessageHeader.default.displayName = 'MessageHeader'
   }
 }
