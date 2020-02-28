@@ -28,13 +28,13 @@ module.exports = class Settings extends React.Component {
       <RadioGroup
       disabled={ false }
         options={ [
-          { name: 'Pure Discord default', value: 'default' },
-          { name: 'Ugly notifications', value: 'cute' },
-          { name: 'Override DND with all notifications', value: 'dnd' },
-          { name: 'No notifications', value: 'none' }
+          { name: 'Pure Discord default - lame', value: 'default' },
+          { name: 'Ugly notifications - good', value: 'cute' },
+          { name: 'Override DND with all notifications - who cares', value: 'dnd' },
+          { name: 'No notifications - no one is talking to you anyway??', value: 'none' }
         ] }
         value={ this.state.overrides }
-        note='These settings do not apply to ugly and un-ugly users'
+        note='These settings do not apply to ugly and "ghosting these fuckers" users'
         onChange={ e => {
           this.setState({ overrides: e.value })
           this.props.updateSetting('overrides', e.value)
@@ -45,7 +45,7 @@ module.exports = class Settings extends React.Component {
 
 
       <SwitchItem
-        note="Disable all @everyone mentions?"
+        note="Disable all @everyone mentions? No one is talking to you specifically anyway"
         style={{ marginTop: '16px' }}
         value={this.state.blockEveryone}
         onChange={() => {
@@ -56,7 +56,7 @@ module.exports = class Settings extends React.Component {
         @everyone
       </SwitchItem>
       <SwitchItem
-        note="Disable all @role mentions?"
+        note="Disable all @role mentions? God forbid someone try to contact you."
         style={{ marginTop: '16px' }}
         value={this.state.blockRoles}
         onChange={() => {
@@ -67,7 +67,7 @@ module.exports = class Settings extends React.Component {
         @roles
       </SwitchItem>
       <SwitchItem
-        note="Should you get notifications when you're invisible?"
+        note="Should you get notifications when you're invisible? Why you hiding you fuck???"
         style={{ marginTop: '16px' }}
         value={!this.state.invisibleIsDND}
         onChange={() => {
@@ -103,7 +103,7 @@ module.exports = class Settings extends React.Component {
           Channels
         </TextInput>
         <TextInput
-          defaultValue={ this.props.getSetting('cuteWords', ['owo', 'uwu']).join(', ') }
+          defaultValue={ this.props.getSetting('cuteWords', ['my fries', 'boats and hoes']).join(', ') }
           onChange={u => this.props.updateSetting('cuteWords', u.split(',').map(id => id.trim()))}
         >
           Keywords
@@ -111,8 +111,8 @@ module.exports = class Settings extends React.Component {
       </Category>
 
       <Category
-        name='Uncutes'
-        description="say goodbye to notifications from these fucks"
+        name='"ghosting these fuckers"'
+        description="say goodbye to notifications from these fucks god damn bitches"
         opened={ this.state.uncuteSettings }
         onChange={() => this.setState({ uncuteSettings: !this.state.uncuteSettings })}
       >
@@ -149,13 +149,13 @@ module.exports = class Settings extends React.Component {
       </Category>
 
       <Category
-          name='Advanced'
-          description="Things you probably don't need to change but they're here anyways"
+          name='Advanced, not for dumb fucks'
+          description="Things you probably don't need to change but they're here anyways, who cares"
           opened={ this.state.advancedSettings }
           onChange={() => this.setState({ advancedSettings: !this.state.advancedSettings })}
       >
         <SwitchItem
-          note="Do you want to get notifications in guilds you're lurking?"
+          note="Do you want to get notifications in guilds you're lurking? Who the fuck lurks you fucking sick fricker"
           style={{ marginTop: '16px' }}
           value={this.state.lurkedGuilds}
           onChange={() => {
@@ -166,7 +166,7 @@ module.exports = class Settings extends React.Component {
           Lurked Guilds
         </SwitchItem>
         <SwitchItem
-          note="I have no idea what a managed channel is"
+          note="I have no idea what a managed channel is -- or what a full bag of mcdonalds fries are"
           style={{ marginTop: '16px' }}
           value={this.state.managedChannels}
           onChange={() => {
@@ -177,7 +177,7 @@ module.exports = class Settings extends React.Component {
           Managed Channels
         </SwitchItem>
         <SwitchItem
-          note="Displays a sun emoji next to ugly users."
+          note="Displays a sun emoji next to ugly users UWU IRONICALLY???"
           style={{ marginTop: '16px' }}
           value={this.state.displayFlower}
           onChange={() => {
