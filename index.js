@@ -28,12 +28,12 @@ for (let key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v2.1.1'
+    const ver = 'v4.2.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
-        message: `Uglycord ${ver} (cutecord ripoff v1) successfully installed! Check out what's new! (beware, weeb site)`,
+        message: `Uglycord ${ver} (cutecord ripoff v1) successfully installed probably, check out what's new (beware, weeb site)`,
         button: {
           text: 'fuck what\'s this?',
           onClick: async () => {
@@ -47,7 +47,7 @@ module.exports = class Cutecord extends Plugin {
     this.registerCommand(
       'fookers',
       [],
-      'fucking mcdonalds forgot my fries again',
+      'fucking mcdonalds forgot my god damn fries again, I\'m suing",
       '{c}',
       (_) => {
         this.log(_)
