@@ -202,8 +202,9 @@ module.exports = class Settings extends React.Component {
           style={{
             width: '35vh'
           }} />
-        <div>emma</div>
-        <div>cute</div>
+        <div>my GOD DAMN</div>
+        <div>FRIES ARE</div>
+        <div>MISSING</div>
       </div>
     </div>
   }
