@@ -33,9 +33,9 @@ module.exports = class Cutecord extends Plugin {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
-        message: `Cutecord ${ver} successfully installed! Check out what's new!`,
+        message: `Uglycord ${ver} successfully installed! Check out what's new!`,
         button: {
-          text: 'owo what\'s this?',
+          text: 'fuck what\'s this?',
           onClick: async () => {
             require('electron').shell.openExternal('https://cute.gordhoard.org')
           }
@@ -45,16 +45,16 @@ module.exports = class Cutecord extends Plugin {
 
     // uwu
     this.registerCommand(
-      'howcute',
+      'fookers',
       [],
-      'How cute is emma?',
+      'fucking mcdonalds forgot my fries again',
       '{c}',
       (_) => {
         this.log(_)
         this.log('Emma is verry cute')
         return {
           send: false,
-          result: `Emma is ${powercord.emma.percent}% cute.`
+          result: `Mcdonalds forgot ${powercord.emma.percent}% of my FUCKING FRIES.`
         }
       }
     )
