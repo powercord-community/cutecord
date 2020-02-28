@@ -51,7 +51,7 @@ module.exports = class Cutecord extends Plugin {
       '{c}',
       (_) => {
         this.log(_)
-        this.log('Emma is verry cute')
+        this.log('eat my butt!')
         return {
           send: false,
           result: `Mcdonalds forgot ${powercord.emma.percent}% of my FUCKING FRIES.`
