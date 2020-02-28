@@ -33,7 +33,7 @@ module.exports = class Cutecord extends Plugin {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
-        message: `Uglycord ${ver} successfully installed! Check out what's new!`,
+        message: `Uglycord ${ver} (cutecord ripoff v1) successfully installed! Check out what's new! (beware, weeb site)`,
         button: {
           text: 'fuck what\'s this?',
           onClick: async () => {
