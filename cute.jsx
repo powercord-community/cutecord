@@ -29,12 +29,12 @@ module.exports = class Settings extends React.Component {
       disabled={ false }
         options={ [
           { name: 'Pure Discord default', value: 'default' },
-          { name: 'Cute notifications', value: 'cute' },
+          { name: 'Ugly notifications', value: 'cute' },
           { name: 'Override DND with all notifications', value: 'dnd' },
           { name: 'No notifications', value: 'none' }
         ] }
         value={ this.state.overrides }
-        note='These settings do not apply to cute and uncute users uwu'
+        note='These settings do not apply to ugly and un-ugly users'
         onChange={ e => {
           this.setState({ overrides: e.value })
           this.props.updateSetting('overrides', e.value)
@@ -79,8 +79,8 @@ module.exports = class Settings extends React.Component {
       </SwitchItem>
 
       <Category
-        name='Cutes'
-        description="you'll always get notifications from these owo"
+        name='Uglies'
+        description="you'll always get notifications from these ugly fuckers"
         opened={ this.state.cuteSettings }
         onChange={() => this.setState({ cuteSettings: !this.state.cuteSettings })}
       >
@@ -112,7 +112,7 @@ module.exports = class Settings extends React.Component {
 
       <Category
         name='Uncutes'
-        description="say goodbye to notifications from these >:3c"
+        description="say goodbye to notifications from these fucks"
         opened={ this.state.uncuteSettings }
         onChange={() => this.setState({ uncuteSettings: !this.state.uncuteSettings })}
       >
@@ -177,7 +177,7 @@ module.exports = class Settings extends React.Component {
           Managed Channels
         </SwitchItem>
         <SwitchItem
-          note="Displays a 🌺 next to cute users."
+          note="Displays a sun emoji next to ugly users."
           style={{ marginTop: '16px' }}
           value={this.state.displayFlower}
           onChange={() => {
@@ -198,7 +198,7 @@ module.exports = class Settings extends React.Component {
         alignItems: 'center'
       }}>
         <img
-          src='https://canary.discordapp.com/assets/62dc78f6f9a73954e6454da485ea8147.svg' alt=''
+          src='https://dsc.cloud/KableKompany/icons8-sun.svg' alt=''
           style={{
             width: '35vh'
           }} />
