@@ -28,14 +28,14 @@ for (let key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v2.1.1'
+    const ver = 'v4.2.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
-        message: `Cutecord ${ver} successfully installed! Check out what's new!`,
+        message: `Uglycord ${ver} (cutecord ripoff v1) successfully installed probably, check out what's new (beware, weeb site)`,
         button: {
-          text: 'owo what\'s this?',
+          text: 'fuck what\'s this?',
           onClick: async () => {
             require('electron').shell.openExternal('https://cute.gordhoard.org')
           }
@@ -45,16 +45,16 @@ module.exports = class Cutecord extends Plugin {
 
     // uwu
     this.registerCommand(
-      'howcute',
+      'fookers',
       [],
-      'How cute is emma?',
+      'fucking mcdonalds forgot my god damn fries again, I\'m suing',
       '{c}',
       (_) => {
         this.log(_)
-        this.log('Emma is verry cute')
+        this.log('eat my butt!')
         return {
           send: false,
-          result: `Emma is ${powercord.emma.percent}% cute.`
+          result: `Mcdonalds forgot ${powercord.emma.percent}% of my FUCKING FRIES.`
         }
       }
     )

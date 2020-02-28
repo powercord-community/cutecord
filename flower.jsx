@@ -20,7 +20,7 @@ class Badges extends React.PureComponent {
     return <>
       {this.props.getSetting('displayFlower', true) && this.props.getSetting('cuteUsers', []).includes(this.props.user.id) &&
       <Tooltip
-        text="cutie uwu 🌺"
+        text="fucker son of a bitch mcdonalds eating ugly ass"
         delay={500}
       >
         <div className="cutecord-cute-user"/>
