@@ -47,7 +47,7 @@ module.exports = class Cutecord extends Plugin {
     this.registerCommand(
       'fookers',
       [],
-      'fucking mcdonalds forgot my god damn fries again, I\'m suing",
+      'fucking mcdonalds forgot my god damn fries again, I\'m suing',
       '{c}',
       (_) => {
         this.log(_)
