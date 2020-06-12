@@ -135,8 +135,10 @@ module.exports = class Cutecord extends Plugin {
       return true
     }
 
-    const suppressEveryone = notificationSettings.isSuppressEveryoneEnabled(channel.getGuildId())
-    const suppressRoles = notificationSettings.isSuppressRolesEnabled(channel.getGuildId())
+    const suppressEveryone = notificationSettings.isSuppressEveryoneEnabled(channel.getGuildId()) ||
+      this.settings.get('blockEveryone', false)
+    const suppressRoles = notificationSettings.isSuppressRolesEnabled(channel.getGuildId()) ||
+      this.settings.get('blockRoles')
     return isRawMessageMentioned(msg, currentUser.id, suppressEveryone, suppressRoles)
   }
 

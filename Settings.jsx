@@ -66,7 +66,7 @@ module.exports = class Settings extends React.Component {
         style={{ marginTop: '16px' }}
         value={this.state.blockEveryone}
         onChange={() => {
-          this.setState({ blockEveryone: !this.state.x });
+          this.setState({ blockEveryone: !this.state.blockEveryone });
           this.props.toggleSetting('blockEveryone');
         }}
       >
