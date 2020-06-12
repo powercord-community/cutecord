@@ -42,7 +42,7 @@ module.exports = class Cutecord extends Plugin {
         button: {
           text: 'owo what\'s this?',
           onClick: async () => {
-            require('electron').shell.openExternal(`https://cute.gordhoard.org#v${ver.replace(/\./g, '-')}`)
+            require('electron').shell.openExternal(`https://cute.gordhoard.org#${ver.replace(/\./g, '-')}`)
           }
         }
       })
