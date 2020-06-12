@@ -1,20 +1,22 @@
-.cutecord-badges, .cutecord-badges.topSectionNormal-2-vo2m {
+.cutecord-badges {
   background: none;
-  display: inline;
+  display: inline-block;
 }
 
-.cutecord-badges ~ .botTagRegular-2HEhHi {
-  margin-left: 8px;
+.privateChannels-1nO12o .cutecord-badges {
+  display: flex;
 }
 
-.privateChannels-1nO12o .cutecord-badges, .badges > .cutecord-badges {
-  height: 20px!important;
-  width: auto!important;
+.privateChannels-1nO12o .cutecord-badges > span {
+  margin-right: 7px;
+}
+
+.membersWrap-2h-GB4 .cutecord-badges {
+  margin-left: 4px;
 }
 
 .cutecord-cute-user {
  display: inline;
- margin-left: 7px;
  padding-left: 1em;
  background: url('https://canary.discordapp.com/assets/07302a0ce95bfc27d75e6d9748f7c3c4.svg') 50% no-repeat;
  background-size: contain;

@@ -18,8 +18,28 @@ you can find cutecord wherever good things are sold or on
 install as you would any other powercord plugin, with
 `git clone` uwu
 
+## How cutecord works
+If you have cutecord style notifications enabled, this is how we handle them.
+- First we check what override setting you have selected. These options allow
+  you to quickly switch between cutecord, Discord's default notifications, and
+  notifications being fully disabled as well.
+- At this point, we check against any muted guilds, channels, or blocked users
+  and anything that matches is dropped. We also check against any meanies here
+  òwó
+- After that, we check against any cuties and dispatch notificaitons
+  accordingly.
+- Once all the cutes are taken care of, notifications are handled as Discord
+  would normally handle them.
+
 ---
 ## Changelog
+### v3.0.0
+The flow of logic that determines if a notification is sent has been fully
+rewritten, and has been summarised in the
+[how notifications work](#how-cutecord-works) section of this document.
+Unfortunately, that also means that many of your settings may have been reset,
+leading to this being a breaking update.
+
 ### v2.1.1
 This is a smaller update - several fixes to CSS have been made, and issues
 with compatibility with other plugins have been covered as well.

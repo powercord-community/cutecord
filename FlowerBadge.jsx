@@ -6,12 +6,6 @@ const { React } = require('powercord/webpack');
 const { AsyncComponent, Tooltip } = require('powercord/components');
 
 class Badges extends React.PureComponent {
-  async componentDidMount () {
-    if (!this.props.user) {
-      return;
-    }
-  }
-
   render () {
     if (!this.props.user) {
       return null;
@@ -30,8 +24,6 @@ class Badges extends React.PureComponent {
 }
 
 module.exports = (props) => <AsyncComponent
-  _provider={async () => {
-    return Badges;
-  }}
+  _provider={ async () => Badges }
   {...props}
 />;

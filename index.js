@@ -1,11 +1,16 @@
+/* eslint-disable semi */
+
 const { Plugin } = require('powercord/entities')
 const { getModule, getModuleByDisplayName, React } = require('powercord/webpack')
-const { inject, uninject } = require("powercord/injector")
-const Cute = require('./cute.jsx')
-const Flower = require('./flower.jsx')
+const { inject, uninject } = require('powercord/injector')
+const Settings = require('./Settings.jsx')
+const Flower = require('./FlowerBadge.jsx')
 const { resolve } = require('path')
 
-// Get all the modules we need (there's a lot)
+/*
+ * Get all the modules we need (there's a lot)
+ * TODO: I should really swap over to promises but oh well
+ */
 const shouldNotify = getModule([ 'makeTextChatNotification' ], false)
 const { getChannel } = getModule([ 'getChannel' ], false)
 const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
@@ -19,7 +24,7 @@ const { StatusTypes } = getModule([ 'StatusTypes' ], false)
 const notificationSettings = getModule([ 'isGuildOrCategoryOrChannelMuted' ], false)
 const { isRawMessageMentioned } = getModule([ 'isRawMessageMentioned' ], false)
 
-for (let key in notificationSettings) {
+for (const key in notificationSettings) {
   if (typeof key === 'function') {
     notificationSettings[key].bind(notificationSettings)
   }
@@ -28,7 +33,7 @@ for (let key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v2.1.1'
+    const ver = 'v3.0.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       this.sendAnnouncement('cutecord-first-welcome', {
@@ -37,33 +42,20 @@ module.exports = class Cutecord extends Plugin {
         button: {
           text: 'owo what\'s this?',
           onClick: async () => {
-            require('electron').shell.openExternal('https://cute.gordhoard.org')
+            require('electron').shell.openExternal(`https://cute.gordhoard.org#v${ver.replace(/\./g, '-')}`)
           }
         }
       })
     }
 
-    // uwu
-    this.registerCommand(
-      'howcute',
-      [],
-      'How cute is emma?',
-      '{c}',
-      (_) => {
-        this.log(_)
-        this.log('Emma is verry cute')
-        return {
-          send: false,
-          result: `Emma is ${powercord.emma.percent}% cute.`
-        }
-      }
-    )
-    
-    inject('cutecord-shouldNotify', shouldNotify, 'shouldNotify', ([msg, channel, n]) => {
-      return this.shouldNotify(msg, channel, n)
-    })
+    inject('cutecord-shouldNotify', shouldNotify, 'shouldNotify',
+      ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n))
 
-    this.registerSettings('cutecord', 'Cutecord', Cute)
+    powercord.api.settings.registerSettings('cutecord', {
+      category: this.entityID,
+      label: 'Cutecord',
+      render: Settings
+    })
 
     this.classes = await getModule([ 'profileBadgeStaff' ])
     this.ConnectedBadges = this.settings.connectStore(Flower)
@@ -71,7 +63,7 @@ module.exports = class Cutecord extends Plugin {
     this._injectMessages()
     this._injectDMs()
 
-    this.loadCSS(resolve(__dirname, 'style.css'))
+    this.loadStylesheet(resolve(__dirname, 'style.css'))
   }
 
   pluginWillUnload () {
@@ -79,65 +71,63 @@ module.exports = class Cutecord extends Plugin {
     uninject('cutecord-members')
     uninject('cutecord-messages')
     uninject('cutecord-dm')
+
+    powercord.api.settings.unregisterSettings('cutecord')
   }
 
-  // If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
+  /*
+   * If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
+   * Returns false if the notifications should be sent, and true if otherwise
+   */
   shouldNotify (msg, channelID, n) {
-    // If they're not cute, don't even try
-    if (this.settings.get('uncuteUsers', []).includes(msg.author.id)) {
-      return false
-    }
-
-    if (this.settings.get('uncuteChannels', []).includes(channelID)) {
-      return false
-    }
-
-    const channel = getChannel(channelID)
-
-    if (this.settings.get('uncuteGuilds', []).includes(channel.guild_id)) {
-      return false
-    }
-
     const currentUser = getCurrentUser()
     const msgAuthor = getUser(msg.author.id)
+    const channel = getChannel(channelID)
 
-    if (null == channel || null == currentUser || null == msgAuthor) {
+    if (channel === null || currentUser === null || msgAuthor === null) {
       return false
     }
     if (!this.messageIsValid(currentUser, msgAuthor, channel)) {
       return false
     }
 
-    // Don't notify if we're already looking at the channel?
-    // I'm not sure what n is, it always seemed to be undefined
-    // This check is in discord's code though, so we should probably have it.
-    if (!n) {
-      const guildID = getGuildId(channel.id)
+    // Don't notify if we're already looking at the channel
+    const guildID = getGuildId(channel.id)
+    if (n !== void 0) {
       if (channel.id === getChannelId(guildID)) {
         return false
       }
     }
 
-    const uncuteRoles = this.settings.get('uncuteRoles', [])
-    for (const r in uncuteRoles) {
-      if (msg.content.includes(`<@&${uncuteRoles[r]}>`)) {
-        return false
+
+    const override = this.settings.get('overrides', 'cute')
+
+    if (override === 'cute') {
+      const uncuteRoles = this.settings.get('uncuteRoles', [])
+      for (const r in uncuteRoles) {
+        if (msg.content.includes(`<@&${uncuteRoles[r]}>`)) {
+          return false
+        }
       }
-    }
 
-
-    const uncuteWords = this.settings.get('uncuteWords', [])
-    for (const w in uncuteWords) {
-      if (msg.content.includes(uncuteWords[w])) {
-        return false
+      const uncuteWords = this.settings.get('uncuteWords', [])
+      for (const w of uncuteWords) {
+        if (w === '') {
+          continue
+        }
+        if (msg.content.includes(w)) {
+          return false
+        }
       }
-    }
 
-
-    const cuteWords = this.settings.get('cuteWords', [])
-    for (const w in cuteWords) {
-      if (msg.content.includes(cuteWords[w])) {
-        return true
+      const cuteWords = this.settings.get('cuteWords', [])
+      for (const w of cuteWords) {
+        if (w === '') {
+          continue
+        }
+        if (msg.content.includes(w)) {
+          return true
+        }
       }
     }
 
@@ -149,14 +139,14 @@ module.exports = class Cutecord extends Plugin {
     const suppressRoles = notificationSettings.isSuppressRolesEnabled(channel.getGuildId())
     return isRawMessageMentioned(msg, currentUser.id, suppressEveryone, suppressRoles)
   }
-  
 
-  // This is the longest boolean conditional ever, expanded
-  // Most of this is still discord's, just made mode readable
-  // We add our own checks in here to see if we should notify anyways
+
+  /*
+   * This is the longest boolean conditional ever, expanded
+   * Most of this is still discord's, just made mode readable
+   */
   messageIsValid (currentUser, msgAuthor, channel) {
-    if (channel.isManaged() && !this.settings.get('managedChannels', false)) {
-      // I have no idea what a managed channel is
+    if (channel.isManaged()) {
       return false
     }
 
@@ -170,8 +160,24 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
+    const override = this.settings.get('overrides', 'cute')
+    if (override === 'cute') {
+      // If they're not cute, don't even try
+      if (this.settings.get('uncuteUsers', []).includes(msgAuthor.id)) {
+        return false
+      }
+
+      if (this.settings.get('uncuteChannels', []).includes(channel.id)) {
+        return false
+      }
+
+      if (this.settings.get('uncuteGuilds', []).includes(channel.guild_id)) {
+        return false
+      }
+    }
+
     const guildID = channel.getGuildId()
-    if (guildID && isLurking(guildID) && !this.settings.get('lurkedGuilds', false)) {
+    if (guildID && isLurking(guildID)) {
       // Are we lurking the guild? Apparently we don't want notifications for that.
       return false
     }
@@ -181,9 +187,11 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
-    const override = this.settings.get('overrides', 'default')
-
     let status = getStatus()
+
+    if (this.settings.get('overrideDND', false) && status === StatusTypes.DND) {
+      status = StatusTypes.ONLINE
+    }
 
     if (this.settings.get('invisibleIsDND', false) && status === StatusTypes.INVISIBLE) {
       status = StatusTypes.DND
@@ -192,6 +200,10 @@ module.exports = class Cutecord extends Plugin {
     // If they want pure default notifications, we check here
     if (override === 'default') {
       return status !== StatusTypes.DND
+    }
+
+    if (override === 'none') {
+      return false
     }
 
     // Here's the magic part :zoomeyes:
@@ -211,19 +223,11 @@ module.exports = class Cutecord extends Plugin {
       return status !== StatusTypes.DND
     }
 
-    if (override === 'dnd') {
-      return true
-    }
-
-    if (override === 'none') {
-      return false
-    }
-
     // Just in case I guess
     return false
   }
 
-  /**
+  /*
    * Thank you bowser for your amazing badges everywhere plugin I would have
    * never been able to figure this out.
    */
@@ -239,7 +243,7 @@ module.exports = class Cutecord extends Plugin {
       return res
     })
   }
-  
+
   async _injectDMs () {
     const _this = this
     const PrivateChannel = await getModuleByDisplayName('PrivateChannel')
@@ -257,7 +261,7 @@ module.exports = class Cutecord extends Plugin {
         res.props.name = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
           React.createElement('span', null, res.props.name),
           React.createElement(_this.ConnectedBadges, { user: this.props.user })
-        ])  
+        ])
       }
       return res
     })
@@ -265,19 +269,20 @@ module.exports = class Cutecord extends Plugin {
 
   async _injectMessages () {
     const _this = this
-    const MessageHeader = await getModule(m => m.default && m.default.displayName === 'MessageHeader')
+    const MessageHeader = await getModule([ 'MessageTimestamp' ])
     inject('cutecord-messages', MessageHeader, 'default', (args, res) => {
       if (!_this.settings.get('messages', true)) {
+        console.log('no')
         return res
       }
 
-      res.props.children[2].props.children.splice(2, 0,
-        React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
-          React.createElement(this.ConnectedBadges, { user: args[0].message.author })
-        )
+      const header = res.props.children[1]
+      // eslint-disable-next-line prefer-destructuring
+      header.props.children[3] = header.props.children[2]
+      header.props.children[2] = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
+        React.createElement(this.ConnectedBadges, { user: args[0].message.author })
       )
       return res
     })
-    MessageHeader.default.displayName = 'MessageHeader'
   }
 }
