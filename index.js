@@ -273,17 +273,10 @@ module.exports = class Cutecord extends Plugin {
     const _this = this
     const MessageHeader = await getModule([ 'MessageTimestamp' ])
     inject('cutecord-messages', MessageHeader, 'default', (args, res) => {
-      if (!_this.settings.get('messages', true)) {
-        console.log('no')
-        return res
-      }
-
       const header = res.props.children[1]
-      // eslint-disable-next-line prefer-destructuring
-      header.props.children[3] = header.props.children[2]
-      header.props.children[2] = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
+      header.props.children.splice(2, 0, React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
         React.createElement(this.ConnectedBadges, { user: args[0].message.author })
-      )
+      ))
       return res
     })
   }
