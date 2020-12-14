@@ -13,7 +13,7 @@ module.exports = class Settings extends React.Component {
       overrides: this.props.getSetting('overrides', 'cute'),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
-      displayFlower: this.props.getSetting('displayFlower', false),
+      displayFlower: this.props.getSetting('displayFlower', true),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
