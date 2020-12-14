@@ -125,7 +125,7 @@ module.exports = class Settings extends React.Component {
           Channels
         </TextInput>
         <TextInput
-          defaultValue={ this.props.getSetting('cuteWords', [ 'owo', 'uwu' ]).join(', ') }
+          defaultValue={ this.props.getSetting('cuteWords', []).join(', ') }
           onChange={u => this.props.updateSetting('cuteWords', u.split(',').map(id => id.trim()))}
         >
           Keywords
