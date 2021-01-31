@@ -36,7 +36,7 @@ module.exports = class Cutecord extends Plugin {
     const ver = 'v3.0.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
-      this.sendAnnouncement('cutecord-first-welcome', {
+      powercord.api.notices.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
         message: `Cutecord ${ver} successfully installed! Check out what's new!`,
         button: {
