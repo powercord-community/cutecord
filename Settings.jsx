@@ -13,7 +13,6 @@ module.exports = class Settings extends React.Component {
       overrides: this.props.getSetting('overrides', 'cute'),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
-      displayFlower: this.props.getSetting('displayFlower', true),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
@@ -202,17 +201,6 @@ module.exports = class Settings extends React.Component {
           }}
         >
           Managed Channels
-        </SwitchItem>
-        <SwitchItem
-          note="Displays a 🌺 next to cute users."
-          style={{ marginTop: '16px' }}
-          value={this.state.displayFlower}
-          onChange={() => {
-            this.setState({ displayFlower: !this.state.displayFlower });
-            this.props.toggleSetting('displayFlower');
-          }}
-        >
-          Cutecord Flower
         </SwitchItem>
       </Category>
 

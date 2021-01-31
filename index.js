@@ -56,21 +56,10 @@ module.exports = class Cutecord extends Plugin {
       label: 'Cutecord',
       render: Settings
     })
-
-    this.classes = await getModule([ 'profileBadgeStaff' ])
-    this.ConnectedBadges = this.settings.connectStore(Flower)
-    this._injectMembers()
-    this._injectMessages()
-    this._injectDMs()
-
-    this.loadStylesheet(resolve(__dirname, 'style.css'))
   }
 
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
-    uninject('cutecord-members')
-    uninject('cutecord-messages')
-    uninject('cutecord-dm')
 
     powercord.api.settings.unregisterSettings('cutecord')
   }
@@ -227,57 +216,5 @@ module.exports = class Cutecord extends Plugin {
 
     // Just in case I guess
     return false
-  }
-
-  /*
-   * Thank you bowser for your amazing badges everywhere plugin I would have
-   * never been able to figure this out.
-   */
-  async _injectMembers () {
-    const _this = this
-    const MemberListItem = await getModuleByDisplayName('MemberListItem')
-    inject('cutecord-members', MemberListItem.prototype, 'renderDecorators', function (args, res) {
-      res.props.children.unshift(
-        React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
-          React.createElement(_this.ConnectedBadges, { user: this.props.user })
-        )
-      )
-      return res
-    })
-  }
-
-  async _injectDMs () {
-    const _this = this
-    const PrivateChannel = await getModuleByDisplayName('PrivateChannel')
-    inject('cutecord-dm', PrivateChannel.prototype, 'render', function (args, res) {
-      if (!_this.settings.get('dms', true)) {
-        return res
-      }
-      if (res.props.name.props) {
-        res.props.name.props.children.splice(1, 0,
-          React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
-            React.createElement(_this.ConnectedBadges, { user: this.props.user })
-          ])
-        )
-      } else {
-        res.props.name = React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` }, [
-          React.createElement('span', null, res.props.name),
-          React.createElement(_this.ConnectedBadges, { user: this.props.user })
-        ])
-      }
-      return res
-    })
-  }
-
-  async _injectMessages () {
-    const _this = this
-    const MessageHeader = await getModule([ 'MessageTimestamp' ])
-    inject('cutecord-messages', MessageHeader, 'default', (args, res) => {
-      const header = res.props.children[1]
-      header.props.children.splice(2, 0, React.createElement('div', { className: `cutecord-badges ${_this.classes.topSectionNormal}` },
-        React.createElement(this.ConnectedBadges, { user: args[0].message.author })
-      ))
-      return res
-    })
   }
 }
