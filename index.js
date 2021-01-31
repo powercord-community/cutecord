@@ -36,15 +36,16 @@ module.exports = class Cutecord extends Plugin {
     const ver = 'v3.0.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
-      this.sendAnnouncement('cutecord-first-welcome', {
-        color: 'green',
-        message: `Cutecord ${ver} successfully installed! Check out what's new!`,
-        button: {
+      powercord.api.notices.sendToast('cutecord-first-welcome', {
+        header: 'New Cutecord installed! uwu',
+        content: `Cutecord ${ver} successfully installed! Check out what's new!`,
+        buttons: [{
           text: 'owo what\'s this?',
+          color: 'green',
           onClick: async () => {
             require('electron').shell.openExternal(`https://cute.gordhoard.org#${ver.replace(/\./g, '-')}`)
           }
-        }
+        }]
       })
     }
 
