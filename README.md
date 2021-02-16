@@ -34,7 +34,7 @@ If you have cutecord style notifications enabled, this is how we handle them.
 ---
 ## Changelog
 ### v3.1.0
-Removed badges (they always errored anyways) and added ability to make ,essages
+Removed badges (they always errored anyways) and added ability to make messages
 with cute words in them appear as if they had a mention. uwu.
 
 ### v3.0.0
