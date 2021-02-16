@@ -1,17 +1,14 @@
 /* eslint-disable semi */
 
 const { Plugin } = require('powercord/entities')
-const { getModule, getModuleByDisplayName, React } = require('powercord/webpack')
+const { getModule } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
 const Settings = require('./Settings.jsx')
-const Flower = require('./FlowerBadge.jsx')
-const { resolve } = require('path')
 
 /*
  * Get all the modules we need (there's a lot)
  * TODO: I should really swap over to promises but oh well
  */
-const shouldNotify = getModule([ 'makeTextChatNotification' ], false)
 const { getChannel } = getModule([ 'getChannel' ], false)
 const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
 const { getUser } = getModule([ 'getUser', 'getUsers' ], false)
@@ -33,7 +30,7 @@ for (const key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v3.0.0'
+    const ver = 'v3.1.0'
     if (this.settings.get('version') !== ver) {
       this.settings.set('version', ver)
       powercord.api.notices.sendAnnouncement('cutecord-first-welcome', {
@@ -42,14 +39,39 @@ module.exports = class Cutecord extends Plugin {
         button: {
           text: 'owo what\'s this?',
           onClick: async () => {
-            require('electron').shell.openExternal(`https://cute.gordhoard.org#${ver.replace(/\./g, '-')}`)
+            require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/#${ver.replace(/\./g, '')}`)
           }
         }
       })
     }
 
-    inject('cutecord-shouldNotify', shouldNotify, 'shouldNotify',
-      ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n))
+    const shouldNotify = await getModule([ 'makeTextChatNotification' ])
+    inject(
+      'cutecord-shouldNotify',
+      shouldNotify,
+      'shouldNotify',
+      ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n)
+    )
+
+    const { default: MessageRender } = await getModule(['getElementFromMessageId'])
+    inject(
+      'cutecord-messagerender',
+      MessageRender,
+      'type', 
+      (args) => {
+        const [{ message }] = args
+        if (message.originalMentioned === undefined) {
+          message.originalMentioned = message.mentioned
+        }
+        if (this.settings.get('highlightKeywords', true)) {
+          message.mentioned = message.mentioned || this.containsKeyword(message)
+        } else {
+          message.mentioned = message.originalMentioned
+        }
+        return args
+      },
+      true
+    )
 
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
@@ -60,8 +82,23 @@ module.exports = class Cutecord extends Plugin {
 
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
+    uninject('cutecord-messagerender')
 
     powercord.api.settings.unregisterSettings('cutecord')
+  }
+
+  containsKeyword (msg) {
+    const cuteWords = this.settings.get('cuteWords', [])
+    for (const w of cuteWords) {
+      if (w === '') {
+        continue
+      }
+      if (msg.content.includes(w)) {
+        return true
+      }
+    }
+
+    return false
   }
 
   /*
@@ -109,14 +146,9 @@ module.exports = class Cutecord extends Plugin {
         }
       }
 
-      const cuteWords = this.settings.get('cuteWords', [])
-      for (const w of cuteWords) {
-        if (w === '') {
-          continue
-        }
-        if (msg.content.includes(w)) {
-          return true
-        }
+      const containsCuteWord = this.containsKeyword(msg)
+      if (containsCuteWord) {
+        return true
       }
     }
 

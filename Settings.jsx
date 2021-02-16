@@ -11,6 +11,7 @@ module.exports = class Settings extends React.Component {
       uncuteSettings: false,
 
       overrides: this.props.getSetting('overrides', 'cute'),
+      highlightKeywords: this.props.getSetting('highlightKeywords', true),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
 
@@ -181,6 +182,17 @@ module.exports = class Settings extends React.Component {
         onChange={() => this.setState({ advancedSettings: !this.state.advancedSettings })}
       >
         <SwitchItem
+          note="Should messages with a cute word in appear like a mention?"
+          style={{ marginTop: '16px' }}
+          value={this.state.highlightKeywords}
+          onChange={() => {
+            this.setState({ highlightKeywords: !this.state.highlightKeywords });
+            this.props.toggleSetting('highlightKeywords');
+          }}
+        >
+          Highlight Cute Words
+        </SwitchItem>
+        <SwitchItem
           note="Do you want to get notifications in guilds you're lurking?"
           style={{ marginTop: '16px' }}
           value={this.state.lurkedGuilds}
@@ -204,21 +216,12 @@ module.exports = class Settings extends React.Component {
         </SwitchItem>
       </Category>
 
-      <div style={{
-        fontFamily: 'serif',
-        display: 'none',
-        flexDirection: 'column',
-        color: 'var(--text-normal)',
-        fontSize: '15vh',
-        alignItems: 'center'
-      }}>
+      <div style={{ marginTop: '10rem'}}>
         <img
-          src='https://canary.discordapp.com/assets/62dc78f6f9a73954e6454da485ea8147.svg' alt=''
-          style={{
-            width: '35vh'
-          }} />
-        <div>emma</div>
-        <div>cute</div>
+          src='https://canary.discordapp.com/assets/62dc78f6f9a73954e6454da485ea8147.svg'
+          alt='emma cute'
+          title='emma cute'
+        />
       </div>
     </div>;
   }

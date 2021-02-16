@@ -33,6 +33,10 @@ If you have cutecord style notifications enabled, this is how we handle them.
 
 ---
 ## Changelog
+### v3.1.0
+Removed badges (they always errored anyways) and added ability to make ,essages
+with cute words in them appear as if they had a mention. uwu.
+
 ### v3.0.0
 The flow of logic that determines if a notification is sent has been fully
 rewritten, and has been summarised in the
@@ -59,8 +63,9 @@ Yay! The first feature update is here òwó
 - keywords are working now!
 - Cute users are now even more cute! (they now have a flower badge displayed
 next to their name owo)
-  ![Messages](https://i.imgur.com/LVf21qm.png)
-  ![Member list](https://i.imgur.com/o6g5qsP.png)
+
+![Messages](https://i.imgur.com/LVf21qm.png)
+![Member list](https://i.imgur.com/o6g5qsP.png)
 
 ### v2.0.0
 The first update! Adds some actual features and unhecks the plugin in general
