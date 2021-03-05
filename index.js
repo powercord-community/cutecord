@@ -4,6 +4,7 @@ const { Plugin } = require('powercord/entities')
 const { getModule } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
 const Settings = require('./Settings.jsx')
+const manifest = require('./manifest.json')
 
 /*
  * Get all the modules we need (there's a lot)
@@ -30,16 +31,16 @@ for (const key in notificationSettings) {
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
-    const ver = 'v3.1.0'
-    if (this.settings.get('version') !== ver) {
-      this.settings.set('version', ver)
+    const { version } = manifest
+    if (this.settings.get('version') !== version) {
+      this.settings.set('version', version)
       powercord.api.notices.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
-        message: `Cutecord ${ver} successfully installed! Check out what's new!`,
+        message: `Cutecord ${version} successfully installed! Check out what's new!`,
         button: {
           text: 'owo what\'s this?',
           onClick: async () => {
-            require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/#${ver.replace(/\./g, '')}`)
+            require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/#${version.replace(/\./g, '')}`)
           }
         }
       })
@@ -64,7 +65,7 @@ module.exports = class Cutecord extends Plugin {
           message.originalMentioned = message.mentioned
         }
         if (this.settings.get('highlightKeywords', true)) {
-          message.mentioned = message.mentioned || this.containsKeyword(message)
+          message.mentioned = message.mentioned || this.containsKeyword(message, this.settings.get('cuteWords', []))
         } else {
           message.mentioned = message.originalMentioned
         }
@@ -87,14 +88,20 @@ module.exports = class Cutecord extends Plugin {
     powercord.api.settings.unregisterSettings('cutecord')
   }
 
-  containsKeyword (msg) {
-    const cuteWords = this.settings.get('cuteWords', [])
-    for (const w of cuteWords) {
+  containsKeyword (msg, keywords) {
+    for (const w of keywords) {
       if (w === '') {
         continue
       }
-      if (msg.content.includes(w)) {
-        return true
+      const detectionMethod = this.settings.get('detectionMethod', 'word')
+      if (detectionMethod === 'word') {
+        if (msg.content.match(`(\\s|^)${w}(\\s|$)`)) {
+          return true
+        }
+      } else {
+        if (msg.content.includes(w)) {
+          return true
+        }
       }
     }
 
@@ -136,17 +143,12 @@ module.exports = class Cutecord extends Plugin {
         }
       }
 
-      const uncuteWords = this.settings.get('uncuteWords', [])
-      for (const w of uncuteWords) {
-        if (w === '') {
-          continue
-        }
-        if (msg.content.includes(w)) {
-          return false
-        }
+      const containesUncuteWord = this.containsKeyword(msg, this.settings.get('uncuteWords', []))
+      if (containesUncuteWord) {
+        return false
       }
 
-      const containsCuteWord = this.containsKeyword(msg)
+      const containsCuteWord = this.containsKeyword(msg, this.settings.get('cuteWords', []))
       if (containsCuteWord) {
         return true
       }

@@ -10,6 +10,7 @@ module.exports = class Settings extends React.Component {
       cuteSettings: false,
       uncuteSettings: false,
 
+      detectionMethod: this.props.getSetting('detectionMethod', 'word'),
       overrides: this.props.getSetting('overrides', 'cute'),
       highlightKeywords: this.props.getSetting('highlightKeywords', true),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
@@ -181,6 +182,27 @@ module.exports = class Settings extends React.Component {
         opened={ this.state.advancedSettings }
         onChange={() => this.setState({ advancedSettings: !this.state.advancedSettings })}
       >
+        <RadioGroup
+          disabled={ false }
+          options={ [
+            { name: 'Word',
+              value: 'word' },
+            { name: 'Substring',
+              value: 'substring' }
+          ] }
+          value={ this.state.detectionMethod }
+          note={<>
+            <p>
+              Substring matches if any part of the word is in a message - for example `kat` would trigger if someone said `kitkat`.
+            </p>
+          </>}
+          onChange={ e => {
+            this.setState({ detectionMethod: e.value });
+            this.props.updateSetting('detectionMethod', e.value);
+          }}
+        >
+          Detection Method
+        </RadioGroup>
         <SwitchItem
           note="Should messages with a cute word in appear like a mention?"
           style={{ marginTop: '16px' }}

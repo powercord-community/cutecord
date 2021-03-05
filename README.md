@@ -33,6 +33,15 @@ If you have cutecord style notifications enabled, this is how we handle them.
 
 ---
 ## Changelog
+### v3.2.0
+Added advanced setting to select the detection method for cute and uncute words.
+This defaults to word detection, but can be set to substring as well. Substring
+detection allows words like `kitkat` to trigger if `kat` is a cute word, whereas
+word detection would not.
+
+idk how cutecord went a year and a half without complaints and now people notice
+this.
+
 ### v3.1.0
 Removed badges (they always errored anyways) and added ability to make messages
 with cute words in them appear as if they had a mention. uwu.
