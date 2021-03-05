@@ -40,7 +40,7 @@ module.exports = class Cutecord extends Plugin {
         button: {
           text: 'owo what\'s this?',
           onClick: async () => {
-            require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/#${version.replace(/\./g, '')}`)
+            require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/#v${version.replace(/\./g, '')}`)
           }
         }
       })
