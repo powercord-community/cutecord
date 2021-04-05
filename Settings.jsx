@@ -11,6 +11,7 @@ module.exports = class Settings extends React.Component {
       uncuteSettings: false,
 
       detectionMethod: this.props.getSetting('detectionMethod', 'word'),
+      caseSensitive: this.props.getSetting('caseSensitive', false),
       overrides: this.props.getSetting('overrides', 'cute'),
       highlightKeywords: this.props.getSetting('highlightKeywords', true),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
@@ -182,6 +183,17 @@ module.exports = class Settings extends React.Component {
         opened={ this.state.advancedSettings }
         onChange={() => this.setState({ advancedSettings: !this.state.advancedSettings })}
       >
+        <SwitchItem
+          note="Should keywords be case sensitive?"
+          style={{ marginTop: '16px' }}
+          value={this.state.caseSensitive}
+          onChange={() => {
+            this.setState({ caseSensitive: !this.state.caseSensitive });
+            this.props.toggleSetting('caseSensitive');
+          }}
+        >
+          Match case
+        </SwitchItem>
         <RadioGroup
           disabled={ false }
           options={ [

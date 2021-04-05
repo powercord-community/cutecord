@@ -33,6 +33,10 @@ If you have cutecord style notifications enabled, this is how we handle them.
 
 ---
 ## Changelog
+### v3.3.0
+Added ability to toggle between case sensitive and insensitive keyword
+detection. The default has been set to case insensitive detection.
+
 ### v3.2.0
 Added advanced setting to select the detection method for cute and uncute words.
 This defaults to word detection, but can be set to substring as well. Substring
