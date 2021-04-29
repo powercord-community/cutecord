@@ -99,7 +99,7 @@ module.exports = class Settings extends React.Component {
 
       <Category
         name='Cutes'
-        description="you'll always get notifications from these owo"
+        description="you'll always get notifications from these owo. separate values with commas"
         opened={ this.state.cuteSettings }
         onChange={() => this.setState({ cuteSettings: !this.state.cuteSettings })}
       >
