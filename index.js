@@ -1,8 +1,9 @@
 /* eslint-disable semi */
 
 const { Plugin } = require('powercord/entities')
-const { getModule } = require('powercord/webpack')
+const { getModule, React } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
+const { findInReactTree, getOwnerInstance } = require('powercord/util')
 const Settings = require('./Settings.jsx')
 const manifest = require('./manifest.json')
 
@@ -74,6 +75,135 @@ module.exports = class Cutecord extends Plugin {
       true
     )
 
+    const Menu = await getModule(['MenuItem'])
+    inject(
+      'cutecord-user-context-menu',
+      Menu,
+      'default',
+      (args) => {
+        const [ { navId, children } ] = args
+        if (navId !== 'user-context')
+          return args
+        
+        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-user'))
+          return args
+
+        let user
+
+        if (document.querySelector('#user-context')) {
+          const instance = getOwnerInstance(document.querySelector('#user-context'))
+          user = (instance?._reactInternals || instance?._reactInternalFiber)?.return?.memoizedProps?.user
+        }
+
+        if (!user || user.id === getCurrentUser().id)
+          return args
+
+        const addCuteItem = React.createElement(Menu.MenuItem, {
+          id: 'cutecord-add-cute-user',
+          label: `${this.settings.get('cuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Cute`,
+          action: () => {
+            let cutes = this.settings.get('cuteUsers', [])
+
+            if (cutes.includes(user.id)) {
+              cutes.splice(cutes.indexOf(user.id), 1)
+            } else {
+              cutes.push(user.id)
+            }
+
+            this.settings.set('cuteUsers', cutes)
+          }
+        })
+
+        const addMeanieItem = React.createElement(Menu.MenuItem, {
+          id: 'cutecord-add-meanie-user',
+          label: `${this.settings.get('uncuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Meanie`,
+          action: () => {
+            let uncutes = this.settings.get('uncuteUsers', [])
+
+            if (uncutes.includes(user.id)) {
+              uncutes.splice(uncutes.indexOf(user.id), 1)
+            } else {
+              uncutes.push(user.id)
+            }
+
+            this.settings.set('uncuteUsers', uncutes)
+          }
+        })
+
+        const blockItem = findInReactTree(children, child => child.props?.id === 'block')
+        const group = children.find(child => child.props?.children?.includes?.(blockItem))
+
+        if (!group)
+          return args
+
+        group.props.children.push(addCuteItem, addMeanieItem)
+
+        return args
+      },
+      true
+    )
+
+    const GuildContextMenu = getModule((m) => m.default && m.default.displayName === 'GuildContextMenu', false)
+    inject(
+      'cutecord-guild-context-menu',
+      GuildContextMenu,
+      'default',
+      (args, res) => {
+        const [ { guild } ] = args
+        const { props: { children } } = res
+
+        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-guild'))
+          return args
+
+        console.log('[Cutecord]', res, args, guild)
+
+        const addCuteItem = React.createElement(Menu.MenuItem, {
+          id: 'cutecord-add-cute-guild',
+          label: `${this.settings.get('cuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Cute`,
+          action: () => {
+            let cutes = this.settings.get('cuteGuilds', [])
+
+            if (cutes.includes(guild.id)) {
+              cutes.splice(cutes.indexOf(guild.id), 1)
+            } else {
+              cutes.push(guild.id)
+            }
+
+            this.settings.set('cuteGuilds', cutes)
+          }
+        })
+
+        const addMeanieItem = React.createElement(Menu.MenuItem, {
+          id: 'cutecord-add-meanie-guild',
+          label: `${this.settings.get('uncuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Meanie`,
+          action: () => {
+            let uncutes = this.settings.get('uncuteGuilds', [])
+
+            if (uncutes.includes(guild.id)) {
+              uncutes.splice(uncutes.indexOf(guild.id), 1)
+            } else {
+              uncutes.push(guild.id)
+            }
+
+            this.settings.set('uncuteGuilds', uncutes)
+          }
+        })
+
+        const muteItem = findInReactTree(children, child => child.props?.id === 'mute-guild')
+        const group = children.find(child => Array.isArray(child.props?.children) ? child.props?.children.includes(muteItem) : child.props?.children === muteItem)
+
+        if (!group)
+          return res
+        
+        if (!Array.isArray(group.props.children))
+          group.props.children = [ group.props.children ]
+        
+        group.props.children.push(addCuteItem, addMeanieItem)
+
+        return res
+      }
+    )
+
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
       label: 'Cutecord',
@@ -84,6 +214,8 @@ module.exports = class Cutecord extends Plugin {
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
     uninject('cutecord-messagerender')
+    uninject('cutecord-user-context-menu')
+    uninject('cutecord-guild-context-menu')
 
     powercord.api.settings.unregisterSettings('cutecord')
   }
