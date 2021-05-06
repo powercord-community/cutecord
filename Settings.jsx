@@ -237,7 +237,7 @@ module.exports = class Settings extends React.Component {
             this.props.toggleSetting('lurkedGuilds');
           }}
         >
-          Lurked Guilds
+          Preview Guilds
         </SwitchItem>
         <SwitchItem
           note="Do you want to get notifications in guilds you have muted?"

@@ -51,7 +51,7 @@ module.exports = class Cutecord extends Plugin {
       'cutecord-shouldNotify',
       shouldNotify,
       'shouldNotify',
-      ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n)
+      ([ msg, channel ]) => this.shouldNotify(msg, channel)
     )
 
     const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
@@ -121,7 +121,7 @@ module.exports = class Cutecord extends Plugin {
    * If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
    * Returns false if the notifications should be sent, and true if otherwise
    */
-  shouldNotify (msg, channelID, n) {
+  shouldNotify (msg, channelID) {
     const currentUser = getCurrentUser()
     const msgAuthor = getUser(msg.author.id)
     const channel = getChannel(channelID)
@@ -132,7 +132,6 @@ module.exports = class Cutecord extends Plugin {
     if (!this.messageIsValid(currentUser, msgAuthor, channel)) {
       return false
     }
-
     // Don't notify if we're already looking at the channel, unless we want to
     const guildID = getGuildId(channel.id)
     const overwriteChatFocus = this.settings.get('overwriteChatFocus', false)
@@ -142,7 +141,6 @@ module.exports = class Cutecord extends Plugin {
     }
 
     const override = this.settings.get('overrides', 'cute')
-
     if (override === 'cute') {
       const uncuteRoles = this.settings.get('uncuteRoles', [])
       for (const r in uncuteRoles) {
@@ -216,10 +214,9 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
-    let muteMessage = false
-    if (notificationSettings.allowNoMessages(channel)) {
-      // if channel is muted, check if user wants to overwrite it when cute is detected
-      muteMessage = !this.settings.get('overwriteMute')
+    // if channel is muted, and user does not want to get muted notifications, return
+    if (notificationSettings.allowNoMessages(channel) && !this.settings.get('overwriteMute')) {
+      return false
     }
 
     let status = getStatus()
@@ -243,26 +240,18 @@ module.exports = class Cutecord extends Plugin {
 
     // Here's the magic part :zoomeyes:
     if (this.settings.get('cuteUsers', []).includes(msgAuthor.id)) {
-      if (muteMessage) {
-        return false
-      }
       return true
     }
-
     if (this.settings.get('cuteChannels', []).includes(channel.id)) {
-      if (muteMessage) {
-        return false
-      }
       return true
     }
-
     if (this.settings.get('cuteGuilds', []).includes(guildID)) {
-      if (muteMessage) {
-        return false
-      }
       return true
     }
 
+    if (notificationSettings.allowNoMessages(channel)) {
+      return false
+    }
 
     if (override === 'cute') {
       return status !== StatusTypes.DND
