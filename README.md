@@ -33,6 +33,12 @@ If you have cutecord style notifications enabled, this is how we handle them.
 
 ---
 ## Changelog
+
+### v3.3.1
+Clearified what "Lurking guilds" Actually means, (No, it doesn't mean muted guilds!)
+Added option to still get notified by cuties even if they said something in a muted guild
+Added option to still get notified by cuties even if you can already see them (In the current chat)
+Fixed case insensitive not working with capatalized cute words
 ### v3.3.0
 Added ability to toggle between case sensitive and insensitive keyword
 detection. The default has been set to case insensitive detection.
