@@ -61,7 +61,7 @@ module.exports = class Cutecord extends Plugin {
       'type',
       (args) => {
         const [ { message } ] = args
-        if (!message.originalMentioned) {
+        if (message.originalMentioned === undefined) {
           message.originalMentioned = message.mentioned
         }
         if (this.settings.get('highlightKeywords', true)) {
@@ -216,10 +216,10 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
-    const overwriteMuteSupression = this.settings.get('overwriteMuteSupression')
-    if (notificationSettings.allowNoMessages(channel) && !overwriteMuteSupression) {
-      // No. Unless we want them... I really do, don't judge me.
-      return false
+    let muteMessage = false
+    if (notificationSettings.allowNoMessages(channel)) {
+      // if channel is muted, check if user wants to overwrite it when cute is detected
+      muteMessage = !this.settings.get('overwriteMute')
     }
 
     let status = getStatus()
@@ -243,16 +243,26 @@ module.exports = class Cutecord extends Plugin {
 
     // Here's the magic part :zoomeyes:
     if (this.settings.get('cuteUsers', []).includes(msgAuthor.id)) {
+      if (muteMessage) {
+        return false
+      }
       return true
     }
 
     if (this.settings.get('cuteChannels', []).includes(channel.id)) {
+      if (muteMessage) {
+        return false
+      }
       return true
     }
 
     if (this.settings.get('cuteGuilds', []).includes(guildID)) {
+      if (muteMessage) {
+        return false
+      }
       return true
     }
+
 
     if (override === 'cute') {
       return status !== StatusTypes.DND

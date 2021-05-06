@@ -17,7 +17,7 @@ module.exports = class Settings extends React.Component {
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
       overwriteChatFocus: this.props.getSetting('overwriteChatFocus', false),
-      overwriteMuteSupression: this.props.getSetting('overwriteMuteSupression', false),
+      overwriteMute: this.props.getSetting('overwriteMute', false),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
@@ -229,7 +229,7 @@ module.exports = class Settings extends React.Component {
           Highlight Cute Words
         </SwitchItem>
         <SwitchItem
-          note="Do you want to get notifications in guilds you are lurking in? (Lurked servers are ones where you can't chat)"
+          note="Do you want to get notifications in guilds you are previewing"
           style={{ marginTop: '16px' }}
           value={this.state.lurkedGuilds}
           onChange={() => {
@@ -242,10 +242,10 @@ module.exports = class Settings extends React.Component {
         <SwitchItem
           note="Do you want to get notifications in guilds you have muted?"
           style={{ marginTop: '16px' }}
-          value={this.state.overwriteMuteSupression}
+          value={this.state.overwriteMute}
           onChange={() => {
-            this.setState({ overwriteMuteSupression: !this.state.overwriteMuteSupression });
-            this.props.toggleSetting('overwriteMuteSupression');
+            this.setState({ overwriteMute: !this.state.overwriteMute });
+            this.props.toggleSetting('overwriteMute');
           }}
         >
           Muted Guilds
