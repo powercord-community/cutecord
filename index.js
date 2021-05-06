@@ -54,14 +54,14 @@ module.exports = class Cutecord extends Plugin {
       ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n)
     )
 
-    const { default: MessageRender } = await getModule(['getElementFromMessageId'])
+    const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
     inject(
       'cutecord-messagerender',
       MessageRender,
-      'type', 
+      'type',
       (args) => {
-        const [{ message }] = args
-        if (message.originalMentioned === undefined) {
+        const [ { message } ] = args
+        if (!message.originalMentioned) {
           message.originalMentioned = message.mentioned
         }
         if (this.settings.get('highlightKeywords', true)) {
@@ -89,25 +89,26 @@ module.exports = class Cutecord extends Plugin {
   }
 
   containsKeyword (msg, keywords) {
-    for (const w of keywords) {
-      if (w === '') {
+    for (let word of keywords) {
+      if (word === '') {
         continue
       }
 
-      let content = msg.content
+      let { content } = msg
       const caseSensitive = this.settings.get('caseSensitive', false)
+
       if (!caseSensitive) {
         content = content.toLowerCase()
-        keywords = keywords.map(k => k.toLowerCase())
+        word = word.toLowerCase() // can't modify an object while looping through it, so instead modify current index of object
       }
 
       const detectionMethod = this.settings.get('detectionMethod', 'word')
       if (detectionMethod === 'word') {
-        if (content.match(`(\\s|^)${w}(\\s|$)`)) {
+        if (content.match(`(\\s|^)${word}(\\s|$)`)) {
           return true
         }
       } else {
-        if (content.includes(w)) {
+        if (content.includes(word)) {
           return true
         }
       }
@@ -132,14 +133,13 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
-    // Don't notify if we're already looking at the channel
+    // Don't notify if we're already looking at the channel, unless we want to
     const guildID = getGuildId(channel.id)
-    if (n !== void 0) {
-      if (channel.id === getChannelId(guildID)) {
-        return false
-      }
-    }
+    const overwriteChatFocus = this.settings.get('overwriteChatFocus', false)
 
+    if (channel.id === getChannelId(guildID) && !overwriteChatFocus) {
+      return false
+    }
 
     const override = this.settings.get('overrides', 'cute')
 
@@ -209,14 +209,16 @@ module.exports = class Cutecord extends Plugin {
       }
     }
 
+    const showLurk = this.settings.get('lurkedGuilds')
     const guildID = channel.getGuildId()
-    if (guildID && isLurking(guildID)) {
-      // Are we lurking the guild? Apparently we don't want notifications for that.
+    if (guildID && isLurking(guildID) && !showLurk) {
+      // Are we lurking the guild? Apparently we don't want notifications for that. Unless we do want them
       return false
     }
 
-    if (notificationSettings.allowNoMessages(channel)) {
-      // No.
+    const overwriteMuteSupression = this.settings.get('overwriteMuteSupression')
+    if (notificationSettings.allowNoMessages(channel) && !overwriteMuteSupression) {
+      // No. Unless we want them... I really do, don't judge me.
       return false
     }
 

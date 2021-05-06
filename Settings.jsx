@@ -16,6 +16,8 @@ module.exports = class Settings extends React.Component {
       highlightKeywords: this.props.getSetting('highlightKeywords', true),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
+      overwriteChatFocus: this.props.getSetting('overwriteChatFocus', false),
+      overwriteMuteSupression: this.props.getSetting('overwriteMuteSupression', false),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
@@ -227,7 +229,7 @@ module.exports = class Settings extends React.Component {
           Highlight Cute Words
         </SwitchItem>
         <SwitchItem
-          note="Do you want to get notifications in guilds you're lurking?"
+          note="Do you want to get notifications in guilds you are lurking in? (Lurked servers are ones where you can't chat)"
           style={{ marginTop: '16px' }}
           value={this.state.lurkedGuilds}
           onChange={() => {
@@ -236,6 +238,28 @@ module.exports = class Settings extends React.Component {
           }}
         >
           Lurked Guilds
+        </SwitchItem>
+        <SwitchItem
+          note="Do you want to get notifications in guilds you have muted?"
+          style={{ marginTop: '16px' }}
+          value={this.state.overwriteMuteSupression}
+          onChange={() => {
+            this.setState({ overwriteMuteSupression: !this.state.overwriteMuteSupression });
+            this.props.toggleSetting('overwriteMuteSupression');
+          }}
+        >
+          Muted Guilds
+        </SwitchItem>
+        <SwitchItem
+          note="Notify even if cute message is sent in currently focused chat"
+          style={{ marginTop: '16px' }}
+          value={this.state.overwriteChatFocus}
+          onChange={() => {
+            this.setState({ overwriteChatFocus: !this.state.overwriteChatFocus });
+            this.props.toggleSetting('overwriteChatFocus');
+          }}
+        >
+          Always Show Cute
         </SwitchItem>
         <SwitchItem
           note="I have no idea what a managed channel is"
@@ -250,7 +274,7 @@ module.exports = class Settings extends React.Component {
         </SwitchItem>
       </Category>
 
-      <div style={{ marginTop: '10rem'}}>
+      <div style={{ marginTop: '10rem' }}>
         <img
           src='https://canary.discordapp.com/assets/62dc78f6f9a73954e6454da485ea8147.svg'
           alt='emma cute'
