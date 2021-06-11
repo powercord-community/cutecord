@@ -203,6 +203,7 @@ module.exports = class Cutecord extends Plugin {
         return res
       }
     )
+    GuildContextMenu.default.displayName = 'GuildContextMenu'
 
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
