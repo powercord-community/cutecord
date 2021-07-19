@@ -55,13 +55,13 @@ module.exports = class Cutecord extends Plugin {
       ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n)
     )
 
-    const { default: MessageRender } = await getModule(['getElementFromMessageId'])
+    const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
     inject(
       'cutecord-messagerender',
       MessageRender,
-      'type', 
+      'type',
       (args) => {
-        const [{ message }] = args
+        const [ { message } ] = args
         if (message.originalMentioned === undefined) {
           message.originalMentioned = message.mentioned
         }
@@ -75,18 +75,20 @@ module.exports = class Cutecord extends Plugin {
       true
     )
 
-    const Menu = await getModule(['MenuItem'])
+    const Menu = await getModule([ 'MenuItem' ])
     inject(
       'cutecord-user-context-menu',
       Menu,
       'default',
       (args) => {
         const [ { navId, children } ] = args
-        if (navId !== 'user-context')
+        if (navId !== 'user-context') {
           return args
-        
-        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-user'))
+        }
+
+        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-user')) {
           return args
+        }
 
         let user
 
@@ -95,14 +97,15 @@ module.exports = class Cutecord extends Plugin {
           user = (instance?._reactInternals || instance?._reactInternalFiber)?.return?.memoizedProps?.user
         }
 
-        if (!user || user.id === getCurrentUser().id)
+        if (!user || user.id === getCurrentUser().id) {
           return args
+        }
 
         const addCuteItem = React.createElement(Menu.MenuItem, {
           id: 'cutecord-add-cute-user',
           label: `${this.settings.get('cuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Cute`,
           action: () => {
-            let cutes = this.settings.get('cuteUsers', [])
+            const cutes = this.settings.get('cuteUsers', [])
 
             if (cutes.includes(user.id)) {
               cutes.splice(cutes.indexOf(user.id), 1)
@@ -118,7 +121,7 @@ module.exports = class Cutecord extends Plugin {
           id: 'cutecord-add-meanie-user',
           label: `${this.settings.get('uncuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Meanie`,
           action: () => {
-            let uncutes = this.settings.get('uncuteUsers', [])
+            const uncutes = this.settings.get('uncuteUsers', [])
 
             if (uncutes.includes(user.id)) {
               uncutes.splice(uncutes.indexOf(user.id), 1)
@@ -133,8 +136,9 @@ module.exports = class Cutecord extends Plugin {
         const blockItem = findInReactTree(children, child => child.props?.id === 'block')
         const group = children.find(child => child.props?.children?.includes?.(blockItem))
 
-        if (!group)
+        if (!group) {
           return args
+        }
 
         group.props.children.push(addCuteItem, addMeanieItem)
 
@@ -152,8 +156,9 @@ module.exports = class Cutecord extends Plugin {
         const [ { guild } ] = args
         const { props: { children } } = res
 
-        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-guild'))
+        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-guild')) {
           return args
+        }
 
         console.log('[Cutecord]', res, args, guild)
 
@@ -161,7 +166,7 @@ module.exports = class Cutecord extends Plugin {
           id: 'cutecord-add-cute-guild',
           label: `${this.settings.get('cuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Cute`,
           action: () => {
-            let cutes = this.settings.get('cuteGuilds', [])
+            const cutes = this.settings.get('cuteGuilds', [])
 
             if (cutes.includes(guild.id)) {
               cutes.splice(cutes.indexOf(guild.id), 1)
@@ -177,7 +182,7 @@ module.exports = class Cutecord extends Plugin {
           id: 'cutecord-add-meanie-guild',
           label: `${this.settings.get('uncuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Meanie`,
           action: () => {
-            let uncutes = this.settings.get('uncuteGuilds', [])
+            const uncutes = this.settings.get('uncuteGuilds', [])
 
             if (uncutes.includes(guild.id)) {
               uncutes.splice(uncutes.indexOf(guild.id), 1)
@@ -192,12 +197,14 @@ module.exports = class Cutecord extends Plugin {
         const muteItem = findInReactTree(children, child => child.props?.id === 'mute-guild')
         const group = children.find(child => Array.isArray(child.props?.children) ? child.props?.children.includes(muteItem) : child.props?.children === muteItem)
 
-        if (!group)
+        if (!group) {
           return res
-        
-        if (!Array.isArray(group.props.children))
+        }
+
+        if (!Array.isArray(group.props.children)) {
           group.props.children = [ group.props.children ]
-        
+        }
+
         group.props.children.push(addCuteItem, addMeanieItem)
 
         return res
@@ -227,7 +234,7 @@ module.exports = class Cutecord extends Plugin {
         continue
       }
 
-      let content = msg.content
+      let { content } = msg
       const caseSensitive = this.settings.get('caseSensitive', false)
       if (!caseSensitive) {
         content = content.toLowerCase()
