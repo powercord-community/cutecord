@@ -146,6 +146,7 @@ module.exports = class Cutecord extends Plugin {
       },
       true
     )
+    Menu.default.displayName = 'Menu'
 
     const GuildContextMenu = getModule((m) => m.default && m.default.displayName === 'GuildContextMenu', false)
     inject(
