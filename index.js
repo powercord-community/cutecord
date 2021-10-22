@@ -11,7 +11,7 @@ const manifest = require('./manifest.json')
  * Get all the modules we need (there's a lot)
  * TODO: I should really swap over to promises but oh well
  */
-const { getChannel } = getModule([ 'getChannel' ], false)
+const { getChannel } = getModule([ 'getChannel', 'hasChannel' ], false)
 const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
 const { getUser } = getModule([ 'getUser', 'getUsers' ], false)
 const { getStatus } = getModule([ 'getStatus', 'getPresence' ], false)
