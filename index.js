@@ -275,7 +275,7 @@ module.exports = class Cutecord extends Plugin {
 
     // Don't notify if we're already looking at the channel
     const guildID = getGuildId(channel.id)
-    if (n !== void 0) {
+    if (this.settings.get('customFocusDetection', false) ? document.hasFocus() : n !== void 0) {
       if (channel.id === getChannelId(guildID)) {
         return false
       }

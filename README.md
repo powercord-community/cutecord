@@ -33,6 +33,12 @@ If you have cutecord style notifications enabled, this is how we handle them.
 
 ---
 ## Changelog
+### v3.4.0
+Added a custom window focus detection mechanism, as Discord's seems to have
+broken on some linux window managers, and is incorrectly registering Discord as
+focused (and therefore does not send a notification for the current channel).
+The setting to enable this can be found in cutecord's advanced settings.
+
 ### v3.3.0
 Added ability to toggle between case sensitive and insensitive keyword
 detection. The default has been set to case insensitive detection.

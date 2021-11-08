@@ -16,6 +16,7 @@ module.exports = class Settings extends React.Component {
       highlightKeywords: this.props.getSetting('highlightKeywords', true),
       lurkedGuilds: this.props.getSetting('lurkedGuilds', false),
       managedChannels: this.props.getSetting('managedChannels', false),
+      customFocusDetection: this.props.getSetting('customFocusDetection', false),
 
       blockEveryone: this.props.getSetting('blockEveryone', false),
       blockRoles: this.props.getSetting('blockRoles', false),
@@ -247,6 +248,17 @@ module.exports = class Settings extends React.Component {
           }}
         >
           Managed Channels
+        </SwitchItem>
+        <SwitchItem
+          note="Discord broke some window focus detection on linux so this fixes it"
+          style={{ marginTop: '16px' }}
+          value={this.state.customFocusDetection}
+          onChange={() => {
+            this.setState({ customFocusDetection: !this.state.customFocusDetection });
+            this.props.toggleSetting('customFocusDetection');
+          }}
+        >
+          Custom Focus Detection
         </SwitchItem>
       </Category>
 
