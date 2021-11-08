@@ -161,8 +161,6 @@ module.exports = class Cutecord extends Plugin {
           return args
         }
 
-        console.log('[Cutecord]', res, args, guild)
-
         const addCuteItem = React.createElement(Menu.MenuItem, {
           id: 'cutecord-add-cute-guild',
           label: `${this.settings.get('cuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Cute`,
