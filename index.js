@@ -66,7 +66,10 @@ module.exports = class Cutecord extends Plugin {
           message.originalMentioned = message.mentioned
         }
         if (this.settings.get('highlightKeywords', true)) {
-          message.mentioned = message.mentioned || this.containsKeyword(message, this.settings.get('cuteWords', []))
+          message.mentioned = message.mentioned || (
+            this.containsKeyword(message, this.settings.get('cuteWords', [])) &&
+            !this.containsKeyword(message, this.settings.get('uncuteWords', []))
+          )
         } else {
           message.mentioned = message.originalMentioned
         }
@@ -148,6 +151,7 @@ module.exports = class Cutecord extends Plugin {
     )
     Menu.default.displayName = 'Menu'
 
+    /*
     const GuildContextMenu = getModule((m) => m.default && m.default.displayName === 'GuildContextMenu', false)
     inject(
       'cutecord-guild-context-menu',
@@ -210,6 +214,7 @@ module.exports = class Cutecord extends Plugin {
       }
     )
     GuildContextMenu.default.displayName = 'GuildContextMenu'
+    */
 
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
