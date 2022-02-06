@@ -364,7 +364,7 @@ module.exports = class Cutecord extends Plugin {
       return false
     }
 
-    let status = getStatus()
+    let status = getStatus(currentUser.id)
 
     if (this.settings.get('overrideDND', false) && status === StatusTypes.DND) {
       status = StatusTypes.ONLINE
