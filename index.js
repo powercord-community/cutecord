@@ -319,7 +319,7 @@ module.exports = class Cutecord extends Plugin {
   userId: currentUser.id,
   suppressEveryone,
   suppressRoles
-});
+}); }
 
 
   /*
