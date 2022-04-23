@@ -11,17 +11,17 @@ const manifest = require('./manifest.json')
  * Get all the modules we need (there's a lot)
  * TODO: I should really swap over to promises but oh well
  */
-const { getChannel } = getModule([ 'getChannel', 'hasChannel' ], false)
-const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
-const { getUser } = getModule([ 'getUser', 'getUsers' ], false)
-const { getStatus } = getModule([ 'getStatus', 'isMobileOnline' ], false)
-const { isLurking } = getModule([ 'isLurking' ], false)
-const { isBlocked } = getModule([ 'getRelationships' ], false)
-const { getGuildId } = getModule([ 'getGuildId' ], false)
-const { getChannelId } = getModule([ 'getChannelId', 'getLastSelectedChannelId' ], false)
-const { StatusTypes } = getModule([ 'StatusTypes' ], false)
-const notificationSettings = getModule([ 'isGuildOrCategoryOrChannelMuted' ], false)
-const { isRawMessageMentioned } = getModule([ 'isRawMessageMentioned' ], false)
+const { getChannel } = getModule(['getChannel', 'hasChannel'], false)
+const { getCurrentUser } = getModule(['getCurrentUser'], false)
+const { getUser } = getModule(['getUser', 'getUsers'], false)
+const { getStatus } = getModule(['getStatus', 'isMobileOnline'], false)
+const { isLurking } = getModule(['isLurking'], false)
+const { isBlocked } = getModule(['getRelationships'], false)
+const { getGuildId } = getModule(['getGuildId'], false)
+const { getChannelId } = getModule(['getChannelId', 'getLastSelectedChannelId'], false)
+const { StatusTypes } = getModule(['StatusTypes'], false)
+const notificationSettings = getModule(['isGuildOrCategoryOrChannelMuted'], false)
+const { isRawMessageMentioned } = getModule(['isRawMessageMentioned'], false)
 
 for (const key in notificationSettings) {
   if (typeof key === 'function') {
@@ -30,7 +30,7 @@ for (const key in notificationSettings) {
 }
 
 module.exports = class Cutecord extends Plugin {
-  async startPlugin () {
+  async startPlugin() {
     // Let people who already have the plugin know about the updates.
     const { version } = manifest
     if (this.settings.get('version') !== version) {
@@ -47,21 +47,21 @@ module.exports = class Cutecord extends Plugin {
       })
     }
 
-    const shouldNotify = await getModule([ 'makeTextChatNotification' ])
+    const shouldNotify = await getModule(['makeTextChatNotification'])
     inject(
       'cutecord-shouldNotify',
       shouldNotify,
       'shouldNotify',
-      ([ msg, channel, n ]) => this.shouldNotify(msg, channel, n)
+      ([msg, channel, n]) => this.shouldNotify(msg, channel, n)
     )
 
-    const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
+    const { default: MessageRender } = await getModule(['getElementFromMessageId'])
     inject(
       'cutecord-messagerender',
       MessageRender,
       'type',
       (args) => {
-        const [ { message } ] = args
+        const [{ message }] = args
         if (message.originalMentioned === undefined) {
           message.originalMentioned = message.mentioned
         }
@@ -78,13 +78,13 @@ module.exports = class Cutecord extends Plugin {
       true
     )
 
-    const Menu = await getModule([ 'MenuItem' ])
+    const Menu = await getModule(['MenuItem'])
     inject(
       'cutecord-user-context-menu',
       Menu,
       'default',
       (args) => {
-        const [ { navId, children } ] = args
+        const [{ navId, children }] = args
         if (navId !== 'user-context') {
           return args
         }
@@ -223,7 +223,7 @@ module.exports = class Cutecord extends Plugin {
     })
   }
 
-  pluginWillUnload () {
+  pluginWillUnload() {
     uninject('cutecord-shouldNotify')
     uninject('cutecord-messagerender')
     uninject('cutecord-user-context-menu')
@@ -232,7 +232,7 @@ module.exports = class Cutecord extends Plugin {
     powercord.api.settings.unregisterSettings('cutecord')
   }
 
-  containsKeyword (msg, keywords) {
+  containsKeyword(msg, keywords) {
     for (const w of keywords) {
       if (w === '') {
         continue
@@ -264,7 +264,7 @@ module.exports = class Cutecord extends Plugin {
    * If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
    * Returns false if the notifications should be sent, and true if otherwise
    */
-  shouldNotify (msg, channelID, n) {
+  shouldNotify(msg, channelID, n) {
     const currentUser = getCurrentUser()
     const msgAuthor = getUser(msg.author.id)
     const channel = getChannel(channelID)
@@ -315,18 +315,19 @@ module.exports = class Cutecord extends Plugin {
     const suppressRoles = notificationSettings.isSuppressRolesEnabled(channel.getGuildId()) ||
       this.settings.get('blockRoles')
     return isRawMessageMentioned({
-  rawMessage: msg,
-  userId: currentUser.id,
-  suppressEveryone,
-  suppressRoles
-}); }
+      rawMessage: msg,
+      userId: currentUser.id,
+      suppressEveryone,
+      suppressRoles
+    })
+  }
 
 
   /*
    * This is the longest boolean conditional ever, expanded
    * Most of this is still discord's, just made mode readable
    */
-  messageIsValid (currentUser, msgAuthor, channel) {
+  messageIsValid(currentUser, msgAuthor, channel) {
     if (channel.isManaged()) {
       return false
     }
