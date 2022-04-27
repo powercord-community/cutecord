@@ -5,6 +5,7 @@ const { getModule, React } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
 const { findInReactTree, getOwnerInstance } = require('powercord/util')
 const Settings = require('./Settings.jsx')
+const NewSettings = require('./NewSettings.jsx')
 const manifest = require('./manifest.json')
 
 /*
@@ -221,6 +222,12 @@ module.exports = class Cutecord extends Plugin {
       label: 'Cutecord',
       render: Settings
     })
+
+    powercord.api.settings.registerSettings('cutecord-testing', {
+      category: this.entityID,
+      label: 'Cutecord Beta',
+      render: NewSettings
+    })
   }
 
   pluginWillUnload() {
@@ -230,6 +237,7 @@ module.exports = class Cutecord extends Plugin {
     uninject('cutecord-guild-context-menu')
 
     powercord.api.settings.unregisterSettings('cutecord')
+    powercord.api.settings.unregisterSettings('cutecord-testing')
   }
 
   containsKeyword(msg, keywords) {
