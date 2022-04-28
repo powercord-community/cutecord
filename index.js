@@ -5,7 +5,7 @@ const { getModule, React } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
 const { findInReactTree, getOwnerInstance } = require('powercord/util')
 const Settings = require('./Settings.jsx')
-const NewSettings = require('./NewSettings.jsx')
+const NewSettings = require('./components/Settings.jsx')
 const manifest = require('./manifest.json')
 
 /*

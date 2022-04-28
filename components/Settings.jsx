@@ -1,6 +1,6 @@
 const { getModule, getModuleByDisplayName, React } = require('powercord/webpack');
 const { Category, SwitchItem, TextInput, RadioGroup } = require('powercord/components/settings');
-const TextInputWithTags = require('./components/TextInputWithTags.jsx')
+const TextInputWithTags = require('./TextInputWithTags.jsx')
 
 const overrideOptions = [
   {
