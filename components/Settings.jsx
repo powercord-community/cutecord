@@ -1,18 +1,23 @@
 const { getModule, getModuleByDisplayName, React } = require('powercord/webpack');
-const { Category, SwitchItem, TextInput, RadioGroup } = require('powercord/components/settings');
+const { Category, SwitchItem, SelectInput, RadioGroup } = require('powercord/components/settings');
 const TextInputWithTags = require('./TextInputWithTags.jsx')
+const defaults = require('../defaults')
 
 const overrideOptions = [
   {
-    name: 'Cutecord Enabled',
+    label: 'Default + Cute',
     value: 'cute'
   },
   {
-    name: 'Discord Default',
+    label: 'Only Cutes',
+    value: 'only-cute'
+  },
+  {
+    label: 'Discord Default',
     value: 'default'
   },
   {
-    name: 'No notifications',
+    label: 'No notifications',
     value: 'none'
   }
 ]
@@ -24,46 +29,19 @@ module.exports = class Settings extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      cutes: {
-        guilds: [],
-        channels: [],
-        users: [],
-        keywords: []
-      },
-      meanies: {
-        guilds: [],
-        channels: [],
-        users: [],
-        keywords: []
-      },
-      statusOverrides: {
-        enabled: true || false,
-        online: "cute",
-        idle: "default",
-        dnd: "none",
-        offline: "cute"
-      },
-      keywordDetection: {
-        method: "word" || "substring",
-        caseSensitive: true || false
-      },
-      mentions: {
-        everyone: true || false,
-        roles: true || false
-        // Refer to BetterReplies if they want to mess with reply mentions
-      },
-      advanced: {
-        highlightKeywords: true || false,
-        lurkedGuilds: true || false,
-        managedChannels: true || false,
-        customFocusDetection: true || false
-      },
+      cutes: this.props.getSetting('cutes', defaults.cutes),
+      meanies: this.props.getSetting('meanies', defaults.meanies),
+      statusOverrides: this.props.getSetting('statusOverrides', defaults.statusOverrides),
+      keywordDetection: this.props.getSetting('keywordDetection', defaults.keywordDetection),
+      mentions: this.props.getSetting('mentions', defaults.mentions),
+      advanced: this.props.getSetting('advanced', defaults.advanced),
 
       // Category state, is not saved
       categories: {
         statusOverrides: false,
         cutes: false,
-        meanies: false
+        meanies: false,
+        advanced: false
       }
     }
   }
@@ -111,11 +89,13 @@ module.exports = class Settings extends React.Component {
    * @param {String} object 
    * @param {String} key
    */
-  generateMergeHandler(object, key) {
+  generateMergeHandler(object, key, updateSetting = true) {
     return e => {
       this.state[object][key] = e.value
       this.setState({ [object]: this.state[object] })
-      // this.props.updateSetting(object, this.state[object])
+      if (updateSetting) {
+        this.props.updateSetting(object, this.state[object])
+      }
     }
   }
 
@@ -126,10 +106,13 @@ module.exports = class Settings extends React.Component {
    * @returns 
    */
   generateCategoryHandler(key) {
-    const mergeHandler = this.generateMergeHandler('categories', key)
-    return () => {
-      mergeHandler({ value: !this.state.categories[key] })
-    }
+    const mergeHandler = this.generateMergeHandler('categories', key, false)
+    return () => mergeHandler({ value: !this.state.categories[key] })
+  }
+
+  generateSwitchHandler(object, key) {
+    const mergeHandler = this.generateMergeHandler(object, key)
+    return value => mergeHandler({ value })
   }
 
   generateTagAddHandler(object, key) {
@@ -183,7 +166,7 @@ module.exports = class Settings extends React.Component {
       // If the user is still undefined, send a notification about it
       if (user === undefined) {
         powercord.api.notices.sendToast(`cutecord-user-not-found-${tag}`, {
-          header: "User not found",
+          header: 'User not found',
           timeout: 5000,
           content: `A match for \`${tag}\` was not found in your client's cache. There may have been too many matches, or none. Consider using an ID.`,
           type: 'error',
@@ -226,7 +209,7 @@ module.exports = class Settings extends React.Component {
       }
       if (guild === undefined) {
         powercord.api.notices.sendToast(`cutecord-guild-not-found-${tag}`, {
-          header: "Guild not found",
+          header: 'Guild not found',
           timeout: 5000,
           content: `A match for \`${tag}\` was not found in your client's cache. There may have been too many matches, or none. Consider using an ID.`,
           type: 'error',
@@ -279,7 +262,7 @@ module.exports = class Settings extends React.Component {
 
       if (channel === undefined) {
         powercord.api.notices.sendToast(`cutecord-channel-not-found-${tag}`, {
-          header: "Channel not found",
+          header: 'Channel not found',
           timeout: 5000,
           content: `A match for \`${tag}\` was not found in your client's cache. There may have been too many matches, or none. Consider using an ID.`,
           type: 'error',
@@ -299,7 +282,6 @@ module.exports = class Settings extends React.Component {
   render() {
     return <div>
       <RadioGroup
-        disabled={false}
         options={[
           {
             name: 'Enabled',
@@ -329,14 +311,13 @@ module.exports = class Settings extends React.Component {
         onChange={this.generateCategoryHandler('statusOverrides')}
       >
         {statusTypes.map(status => (
-          <RadioGroup
-            disabled={false}
+          <SelectInput
             options={overrideOptions}
             value={this.state.statusOverrides[status]}
             onChange={this.generateMergeHandler('statusOverrides', status)}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
-          </RadioGroup>
+          </SelectInput>
         ))}
       </Category>
       {['cutes', 'meanies'].map(type => (
@@ -372,6 +353,87 @@ module.exports = class Settings extends React.Component {
           ></TextInputWithTags>
         </Category>
       ))}
+
+      <Category
+        name='Advanced'
+        description='Fine tune settings for notifications.'
+        opened={this.state.categories.advanced}
+        onChange={this.generateCategoryHandler('advanced')}
+      >
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.keywordDetection.caseSensitive}
+          onChange={this.generateSwitchHandler('keywordDetection', 'caseSensitive')}
+        >
+          Case sensitive keywords
+        </SwitchItem>
+        <RadioGroup
+          options={[
+            {
+              name: 'Word',
+              value: 'word'
+            },
+            {
+              name: 'Substring',
+              value: 'substring'
+            }
+          ]}
+          value={this.state.keywordDetection.method}
+          note={<>
+            <p>
+              Substring matches if any part of the word is in a message - for example `kat` would trigger if someone said `kitkat`.
+            </p>
+          </>}
+          onChange={this.generateMergeHandler('keywordDetection', 'method')}
+        >
+          Keyword detection method
+        </RadioGroup>
+
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.mentions.everyone}
+          onChange={this.generateSwitchHandler('mentions', 'everyone')}
+        >
+          Ping on @everyone mentions
+        </SwitchItem>
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.mentions.roles}
+          onChange={this.generateSwitchHandler('mentions', 'roles')}
+        >
+          Ping on role mentions
+        </SwitchItem>
+
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.advanced.lurkedGuilds}
+          onChange={this.generateSwitchHandler('advanced', 'lurkedGuilds')}
+        >
+          Notifications from lurked guilds
+        </SwitchItem>
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.advanced.managedChannels}
+          onChange={this.generateSwitchHandler('advanced', 'managedChannels')}
+        >
+          Notifications from managed channels
+        </SwitchItem>
+
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.advanced.highlightKeywords}
+          onChange={this.generateSwitchHandler('advanced', 'hightlightKeywords')}
+        >
+          Highlight cute words
+        </SwitchItem>
+        <SwitchItem
+          style={{ marginTop: '16px' }}
+          value={this.state.advanced.customFocusDetection}
+          onChange={this.generateSwitchHandler('advanced', 'customFocusDetection')}
+        >
+          Custom focus detection
+        </SwitchItem>
+      </Category>
     </div>
   }
 }
