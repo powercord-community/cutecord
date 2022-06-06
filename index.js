@@ -7,6 +7,7 @@ const { findInReactTree, getOwnerInstance } = require('powercord/util')
 const Settings = require('./Settings.jsx')
 const NewSettings = require('./components/Settings.jsx')
 const manifest = require('./manifest.json')
+const defaults = require('./defaults.js')
 
 /*
  * Get all the modules we need (there's a lot)
@@ -109,8 +110,8 @@ module.exports = class Cutecord extends Plugin {
         }
         if (this.settings.get('highlightKeywords', true)) {
           message.mentioned = message.mentioned || (
-            this.containsKeyword(message, this.settings.get('cuteWords', [])) &&
-            !this.containsKeyword(message, this.settings.get('uncuteWords', []))
+            this.containsKeyword(message, this.settings.get('cutes', defaults.cutes).keywords) &&
+            !this.containsKeyword(message, this.settings.get('meanies', defaults.meanies).keywords)
           )
         } else {
           message.mentioned = message.originalMentioned
@@ -296,7 +297,7 @@ module.exports = class Cutecord extends Plugin {
 
       const detectionMethod = this.settings.get('detectionMethod', 'word')
       if (detectionMethod === 'word') {
-        if (content.match(`(\\s|^)${w}(\\s|$)`)) {
+        if (content.match(`(^|[\\s/?.,'":()\\-_\\*!\`])${w}([\\s/?.,'":()\\-_\\*!\`]|$)`)) {
           return true
         }
       } else {
