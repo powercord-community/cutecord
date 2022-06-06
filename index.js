@@ -288,8 +288,8 @@ module.exports = class Cutecord extends Plugin {
      */
     function shouldNotifyBase (currentUser, messageAuthor, channel, r, o) {
       // Set variable defaults
-      r = r ?? false
-      o = o ?? false
+      r ??= false
+      o ??= false
 
       if (messageAuthor.hasFlag(UserFlags.SPAMMER)) {
         return false
@@ -348,8 +348,8 @@ module.exports = class Cutecord extends Plugin {
      */
     function shouldNotify (message, channelId, lostFocus, r) {
       // Set variable defaults
-      lostFocus = lostFocus ?? true
-      r = r ?? false
+      lostFocus ??= true
+      r ??= false
       console.error(new Error)
       let channel = getChannel(channelId)
       if (message.type === MessageTypes.THREAD_STARTER_MESSAGES) {
