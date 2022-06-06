@@ -19,6 +19,63 @@ module.exports = class Cutecord extends Plugin {
     // Let people who already have the plugin know about the updates.
     const { version } = manifest
     if (this.settings.get('version') !== version) {
+      // Check if any configuration needs to be migrated
+      const oldVersion = this.settings.get('version')
+      const [major, minor, patch] = oldVersion.split('.').map(Number)
+      if (major < 4) {
+        this.log(`Out of date configuration found, migrating automatically (${oldVersion} -> ${version})`)
+        
+        const migratedSettings = {
+          cutes: {
+            guilds: this.settings.get('cuteGuilds', []),
+            channels: this.settings.get('cuteChannels', []),
+            users: this.settings.get('cuteUsers', []),
+            keywords: this.settings.get('cuteWords', [])
+          },
+          meanies: {
+            guilds: this.settings.get('uncuteGuilds', []),
+            channels: this.settings.get('uncuteChannels', []),
+            users: this.settings.get('uncuteUsers', []),
+            keywords: this.settings.get('uncuteWords', [])
+          },
+          statusOverrides: {
+            enabled: this.settings.get('overrides', 'cute') !== 'default',
+            online: this.settings.get('overrides', 'cute'),
+            idle: this.settings.get('overrides', 'cute'),
+            dnd: this.settings.get('overrideDND', false) ? 'cute' : 'only-cute',
+            streaming: this.settings.get('overrides', 'only-cute'),
+            invisible: this.settings.get('invisibleIsDND', false) ? 'none' : this.settings.get('overrides', 'cute')
+          },
+          keywordDetection: {
+            method: this.settings.get('detectionMethod', 'word'),
+            caseSensitive: this.settings.get('caseSensitive', false)
+          },
+          mentions: {
+            everyone: !this.settings.get('blockEveryone', false),
+            roles: !this.settings.get('blockEveryone', false),
+          },
+          advanced: {
+            highlightKeywords: this.settings.get('highlightKeywords', true),
+            lurkedGuilds: this.settings.get('lurkedGuilds', false),
+            managedChannels: this.settings.get('managedChannels', false),
+            customFocusDetection: this.settings.get('customFocusDetection', false)
+          },
+          oldSettings: {
+            [oldVersion]: this.settings.getKeys().reduce((obj, key) => {
+              obj[key] = this.settings.get(key)
+              return obj
+            }, {})
+          }
+        }
+
+        // Clean up all previous settings
+        this.settings.getKeys().forEach(this.settings.delete)
+        
+        // Store the migrated settings
+        for (const key in migratedSettings) {
+          this.settings.set(key, migratedSettings[key])
+        }
+      }
       this.settings.set('version', version)
       powercord.api.notices.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
@@ -301,7 +358,6 @@ module.exports = class Cutecord extends Plugin {
 
       // If Lurking and different user and not blocked and DND and (not muted and ALL MESSAGES)
       var guildId = channel.getGuildId()
-      console.log(channel.name, guildId)
       if (guildId !== null || isLurking(guildId)) {
         return false
       }
@@ -350,7 +406,7 @@ module.exports = class Cutecord extends Plugin {
       // Set variable defaults
       lostFocus ??= true
       r ??= false
-      console.error(new Error)
+
       let channel = getChannel(channelId)
       if (message.type === MessageTypes.THREAD_STARTER_MESSAGES) {
         channel = getChannel(channel?.parent_id)
