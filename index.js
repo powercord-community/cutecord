@@ -12,23 +12,7 @@ const manifest = require('./manifest.json')
  * Get all the modules we need (there's a lot)
  * TODO: I should really swap over to promises but oh well
  */
-const { getChannel } = getModule(['getChannel', 'hasChannel'], false)
 const { getCurrentUser } = getModule(['getCurrentUser'], false)
-const { getUser } = getModule(['getUser', 'getUsers'], false)
-const { getStatus } = getModule(['getStatus', 'isMobileOnline'], false)
-const { isLurking } = getModule(['isLurking'], false)
-const { isBlocked } = getModule(['getRelationships'], false)
-const { getGuildId } = getModule(['getGuildId'], false)
-const { getChannelId } = getModule(['getChannelId', 'getLastSelectedChannelId'], false)
-const { StatusTypes } = getModule(['StatusTypes'], false)
-const notificationSettings = getModule(['isGuildOrCategoryOrChannelMuted'], false)
-const { isRawMessageMentioned } = getModule(['isRawMessageMentioned'], false)
-
-for (const key in notificationSettings) {
-  if (typeof key === 'function') {
-    notificationSettings[key].bind(notificationSettings)
-  }
-}
 
 module.exports = class Cutecord extends Plugin {
   async startPlugin() {
@@ -48,12 +32,12 @@ module.exports = class Cutecord extends Plugin {
       })
     }
 
-    const shouldNotify = await getModule(['makeTextChatNotification'])
+    const patches = await this.buildShouldNotify()
     inject(
       'cutecord-shouldNotify',
-      shouldNotify,
+      await getModule(['makeTextChatNotification']),
       'shouldNotify',
-      ([msg, channel, n]) => this.shouldNotify(msg, channel, n)
+      ([msg, channel, n]) => patches.shouldNotify(msg, channel, n)
     )
 
     const { default: MessageRender } = await getModule(['getElementFromMessageId'])
@@ -268,152 +252,171 @@ module.exports = class Cutecord extends Plugin {
     return false
   }
 
-  /*
-   * If something looks weird here, it's because I tried to follow discord's implementation as much as I could.
-   * Returns false if the notifications should be sent, and true if otherwise
+  /**
+   * This is like this because it's the cleanest way I could think of to use the async version of getModule
    */
-  shouldNotify(msg, channelID, n) {
-    const currentUser = getCurrentUser()
-    const msgAuthor = getUser(msg.author.id)
-    const channel = getChannel(channelID)
+  async buildShouldNotify () {
+    // Fetch all required modules
+    const { isLurking } = await getModule(['isLurking'])
+    const { isBlocked } = await getModule(['isBlocked'])
+    const { getStatus } = await getModule(['getStatus', 'getActivities'])
+    const { StatusTypes } = await getModule(['StatusTypes'])
+    const { UserFlags } = await getModule(['UserFlags'])
 
-    if (channel === null || currentUser === null || msgAuthor === null) {
-      return false
-    }
-    if (!this.messageIsValid(currentUser, msgAuthor, channel)) {
-      return false
+    const userSettings = await getModule(['allowAllMessages', 'isSuppressEveryoneEnabled', 'isSuppressRolesEnabled'])
+    const boundSettings = {}
+    
+    for (const key in userSettings.__proto__) {
+      boundSettings[key] = userSettings[key].bind(userSettings)
     }
 
-    // Don't notify if we're already looking at the channel
-    const guildID = getGuildId(channel.id)
-    if (this.settings.get('customFocusDetection', false) ? document.hasFocus() : n !== void 0) {
-      if (channel.id === getChannelId(guildID)) {
+    const {
+      allowAllMessages,
+      allowNoMessages,
+      isSuppressEveryoneEnabled,
+      isSuppressRolesEnabled
+    } = boundSettings
+
+    /**
+     * Returns true if message shouldn't notify
+     * @param {*} currentUser
+     * @param {*} messageAuthor
+     * @param {*} channel
+     * @param {Boolean} r Unknown use
+     * @param {*} o Unknown use
+     * @returns 
+     */
+    function shouldNotifyBase (currentUser, messageAuthor, channel, r, o) {
+      // Set variable defaults
+      r = r ?? false
+      o = o ?? false
+
+      if (messageAuthor.hasFlag(UserFlags.SPAMMER)) {
         return false
       }
+
+      if (channel.isManaged()) {
+        return false
+      }
+
+      // If Lurking and different user and not blocked and DND and (not muted and ALL MESSAGES)
+      var guildId = channel.getGuildId()
+      console.log(channel.name, guildId)
+      if (guildId !== null || isLurking(guildId)) {
+        return false
+      }
+
+      if (messageAuthor.id === currentUser.id) {
+        return false
+      }
+
+      if (isBlocked(messageAuthor.id)) {
+        return false
+      }
+
+      if (!r && getStatus() === StatusTypes.DND) {
+        return false
+      }
+
+      if (!o && allowNoMessages(channel)) {
+        return false
+      }
+
+      return true
     }
 
+    const { getChannel } = await getModule(['getChannel', 'getBasicChannel'])
+    const { MessageTypes } = await getModule(['MessageTypes', 'UploadTypes'])
+    const { getCurrentUser, getUser } = await getModule(['getCurrentUser', 'getUser'])
+    const { getChannelId } = await getModule(['getChannelId', 'getVoiceChannelId'])
+    const { getGuildId } = await getModule(['getGuildId', 'getLastSelectedGuildId'])
+    const { getCurrentSidebarChannelId } = await getModule(['getCurrentSidebarChannelId'])
+    const { THREAD_CHANNEL_TYPES, GUILD_VOCAL_CHANNEL_TYPES } = await getModule(['THREAD_CHANNEL_TYPES', 'GUILD_VOCAL_CHANNEL_TYPES'])
+    const { computeThreadNotificationSetting } = await getModule(['computeThreadNotificationSetting'])
+    const { ThreadMemberFlags } = await getModule(['ThreadMemberFlags'])
+    const { isRawMessageMentioned } = await getModule(['isRawMessageMentioned'])
+    const { getChannelId: getVoiceChannelId } = await getModule(['getChannelId', 'getAveragePing'])
 
-    const override = this.settings.get('overrides', 'cute')
+    /**
+`    * Determines if a notification should be sent for the provided message. This logic is largely copied from Discord's
+     * own internal handling.
+     * @param {*} message Message object
+     * @param {String} channelId channel that the message is sent in
+     * @param {Boolean} lostFocus If the window has lost focus or not
+     * @param {*} r Unknown use
+     * @returns {Boolean}
+     */
+    function shouldNotify (message, channelId, lostFocus, r) {
+      // Set variable defaults
+      lostFocus = lostFocus ?? true
+      r = r ?? false
+      console.error(new Error)
+      let channel = getChannel(channelId)
+      if (message.type === MessageTypes.THREAD_STARTER_MESSAGES) {
+        channel = getChannel(channel?.parent_id)
+      }
 
-    if (override === 'cute') {
-      const uncuteRoles = this.settings.get('uncuteRoles', [])
-      for (const r in uncuteRoles) {
-        if (msg.content.includes(`<@&${uncuteRoles[r]}>`)) {
+      const currentUser = getCurrentUser()
+      const messageAuthor = getUser(message.author.id)
+
+      // If the channel, current user, or message author aren't found then don't notify
+      if (null == channel || null == currentUser || null == messageAuthor) {
+        return false
+      }
+
+      // Check if the channel is muted, user is blocked, or message is from the current user.
+      if (!shouldNotifyBase(currentUser, messageAuthor, channel, r)) {
+        return false
+      }
+
+      if (!lostFocus) {
+        // Get the channel the user is currently looking at, if it's the same as the channel the message is from don't
+        // notify.
+        const currentChannelId = getChannelId(getGuildId())
+        if (currentChannelId === channel.id) {
+          return false
+        }
+        if (getCurrentSidebarChannelId(currentChannelId)) {
           return false
         }
       }
 
-      const containesUncuteWord = this.containsKeyword(msg, this.settings.get('uncuteWords', []))
-      if (containesUncuteWord) {
-        return false
+      // Compute thread notification settings
+      if (THREAD_CHANNEL_TYPES.has(channel.type)) {
+        if (isMuted(channel.id)) {
+          return false
+        }
+
+        // TODO: Check uncutes here
+
+        const notificationSettings = computeThreadNotificationSetting(channel)
+        return notificationSettings !== ThreadMemberFlags.NO_MESSAGES && (
+          notificationSettings === ThreadMemberFlags.ALL_MESSAGES ||
+          isRawMessageMentioned({
+            rawMessage: message,
+            userId: currentUser.id,
+            suppressEveryone: false,
+            suppressRoles: false
+          })
+        )
       }
 
-      const containsCuteWord = this.containsKeyword(msg, this.settings.get('cuteWords', []))
-      if (containsCuteWord) {
+      const b = !GUILD_VOCAL_CHANNEL_TYPES.has(channel.type) || getVoiceChannelId() === channel.id
+      if (allowAllMessages(channel) && b) {
         return true
       }
+
+      const suppressEveryone = isSuppressEveryoneEnabled(channel.getGuildId())
+      const suppressRoles = isSuppressRolesEnabled(channel.getGuildId())
+
+      return isRawMessageMentioned({
+        rawMessage: message,
+        userId: currentUser.id,
+        suppressEveryone,
+        suppressRoles
+      })
     }
 
-    if (notificationSettings.allowAllMessages(channel)) {
-      return true
-    }
-
-    const suppressEveryone = notificationSettings.isSuppressEveryoneEnabled(channel.getGuildId()) ||
-      this.settings.get('blockEveryone', false)
-    const suppressRoles = notificationSettings.isSuppressRolesEnabled(channel.getGuildId()) ||
-      this.settings.get('blockRoles')
-    return isRawMessageMentioned({
-      rawMessage: msg,
-      userId: currentUser.id,
-      suppressEveryone,
-      suppressRoles
-    })
-  }
-
-
-  /*
-   * This is the longest boolean conditional ever, expanded
-   * Most of this is still discord's, just made mode readable
-   */
-  messageIsValid(currentUser, msgAuthor, channel) {
-    if (channel.isManaged()) {
-      return false
-    }
-
-    if (isBlocked(msgAuthor.id)) {
-      // Go away korbs
-      return false
-    }
-
-    if (msgAuthor.id === currentUser.id) {
-      // No, you can't ping yourself. Sorry.
-      return false
-    }
-
-    const override = this.settings.get('overrides', 'cute')
-    if (override === 'cute') {
-      // If they're not cute, don't even try
-      if (this.settings.get('uncuteUsers', []).includes(msgAuthor.id)) {
-        return false
-      }
-
-      if (this.settings.get('uncuteChannels', []).includes(channel.id)) {
-        return false
-      }
-
-      if (this.settings.get('uncuteGuilds', []).includes(channel.guild_id)) {
-        return false
-      }
-    }
-
-    const guildID = channel.getGuildId()
-    if (guildID && isLurking(guildID)) {
-      // Are we lurking the guild? Apparently we don't want notifications for that.
-      return false
-    }
-
-    if (notificationSettings.allowNoMessages(channel)) {
-      // No.
-      return false
-    }
-
-    let status = getStatus(currentUser.id)
-
-    if (this.settings.get('overrideDND', false) && status === StatusTypes.DND) {
-      status = StatusTypes.ONLINE
-    }
-
-    if (this.settings.get('invisibleIsDND', false) && status === StatusTypes.INVISIBLE) {
-      status = StatusTypes.DND
-    }
-
-    // If they want pure default notifications, we check here
-    if (override === 'default') {
-      return status !== StatusTypes.DND
-    }
-
-    if (override === 'none') {
-      return false
-    }
-
-    // Here's the magic part :zoomeyes:
-    if (this.settings.get('cuteUsers', []).includes(msgAuthor.id)) {
-      return true
-    }
-
-    if (this.settings.get('cuteChannels', []).includes(channel.id)) {
-      return true
-    }
-
-    if (this.settings.get('cuteGuilds', []).includes(guildID)) {
-      return true
-    }
-
-    if (override === 'cute') {
-      return status !== StatusTypes.DND
-    }
-
-    // Just in case I guess
-    return false
+    return { shouldNotifyBase, shouldNotify }
   }
 }
