@@ -13,19 +13,20 @@ const defaults = require('./defaults.js')
  * Get all the modules we need (there's a lot)
  * TODO: I should really swap over to promises but oh well
  */
-const { getCurrentUser } = getModule(['getCurrentUser'], false)
+const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
 
 module.exports = class Cutecord extends Plugin {
-  async startPlugin() {
+  async startPlugin () {
     // Let people who already have the plugin know about the updates.
     const { version } = manifest
     if (this.settings.get('version') !== version) {
       // Check if any configuration needs to be migrated
       const oldVersion = this.settings.get('version')
-      const [major, minor, patch] = oldVersion.split('.').map(Number)
+      // eslint-disable-next-line no-unused-vars
+      const [ major, minor, patch ] = oldVersion.split('.').map(Number)
       if (major < 4) {
         this.log(`Out of date configuration found, migrating automatically (${oldVersion} -> ${version})`)
-        
+
         const migratedSettings = {
           cutes: {
             guilds: this.settings.get('cuteGuilds', []),
@@ -53,7 +54,7 @@ module.exports = class Cutecord extends Plugin {
           },
           mentions: {
             everyone: !this.settings.get('blockEveryone', false),
-            roles: !this.settings.get('blockEveryone', false),
+            roles: !this.settings.get('blockEveryone', false)
           },
           advanced: {
             highlightKeywords: this.settings.get('highlightKeywords', true),
@@ -71,7 +72,7 @@ module.exports = class Cutecord extends Plugin {
 
         // Clean up all previous settings
         this.settings.getKeys().forEach(this.settings.delete)
-        
+
         // Store the migrated settings
         for (const key in migratedSettings) {
           this.settings.set(key, migratedSettings[key])
@@ -93,19 +94,19 @@ module.exports = class Cutecord extends Plugin {
     const patches = await this.buildShouldNotify()
     inject(
       'cutecord-shouldNotify',
-      await getModule(['makeTextChatNotification']),
+      await getModule([ 'makeTextChatNotification' ]),
       'shouldNotify',
-      ([msg, channel, n]) => patches.shouldNotify(msg, channel, n)
+      ([ msg, channel, n ]) => patches.shouldNotify(msg, channel, n)
     )
 
-    const { default: MessageRender } = await getModule(['getElementFromMessageId'])
+    const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
     inject(
       'cutecord-messagerender',
       MessageRender,
       'type',
       (args) => {
-        const [{ message }] = args
-        if (message.originalMentioned === undefined) {
+        const [ { message } ] = args
+        if (message.originalMentioned === void 0) {
           message.originalMentioned = message.mentioned
         }
         if (this.settings.get('highlightKeywords', true)) {
@@ -121,13 +122,13 @@ module.exports = class Cutecord extends Plugin {
       true
     )
 
-    const Menu = await getModule(['MenuItem'])
+    const Menu = await getModule([ 'MenuItem' ])
     inject(
       'cutecord-user-context-menu',
       Menu,
       'default',
       (args) => {
-        const [{ navId, children }] = args
+        const [ { navId, children } ] = args
         if (navId !== 'user-context') {
           return args
         }
@@ -272,7 +273,7 @@ module.exports = class Cutecord extends Plugin {
     })
   }
 
-  pluginWillUnload() {
+  pluginWillUnload () {
     uninject('cutecord-shouldNotify')
     uninject('cutecord-messagerender')
     uninject('cutecord-user-context-menu')
@@ -282,7 +283,7 @@ module.exports = class Cutecord extends Plugin {
     powercord.api.settings.unregisterSettings('cutecord-testing')
   }
 
-  containsKeyword(msg, keywords) {
+  containsKeyword (msg, keywords) {
     for (const w of keywords) {
       if (w === '') {
         continue
@@ -315,15 +316,16 @@ module.exports = class Cutecord extends Plugin {
    */
   async buildShouldNotify () {
     // Fetch all required modules
-    const { isLurking } = await getModule(['isLurking'])
-    const { isBlocked } = await getModule(['isBlocked'])
-    const { getStatus } = await getModule(['getStatus', 'getActivities'])
-    const { StatusTypes } = await getModule(['StatusTypes'])
-    const { UserFlags } = await getModule(['UserFlags'])
+    const { isLurking } = await getModule([ 'isLurking' ])
+    const { isBlocked } = await getModule([ 'isBlocked' ])
+    const { isMuted } = await getModule([ 'isMuted', 'hasJoined' ])
+    const { getStatus } = await getModule([ 'getStatus', 'getActivities' ])
+    const { StatusTypes } = await getModule([ 'StatusTypes' ])
+    const { UserFlags } = await getModule([ 'UserFlags' ])
 
-    const userSettings = await getModule(['allowAllMessages', 'isSuppressEveryoneEnabled', 'isSuppressRolesEnabled'])
+    const userSettings = await getModule([ 'allowAllMessages', 'isSuppressEveryoneEnabled', 'isSuppressRolesEnabled' ])
     const boundSettings = {}
-    
+
     for (const key in userSettings.__proto__) {
       boundSettings[key] = userSettings[key].bind(userSettings)
     }
@@ -342,12 +344,12 @@ module.exports = class Cutecord extends Plugin {
      * @param {*} channel
      * @param {Boolean} r Unknown use
      * @param {*} o Unknown use
-     * @returns 
+     * @returns
      */
     function shouldNotifyBase (currentUser, messageAuthor, channel, r, o) {
       // Set variable defaults
-      r ??= false
-      o ??= false
+      r = r ?? false
+      o = o ?? false
 
       if (messageAuthor.hasFlag(UserFlags.SPAMMER)) {
         return false
@@ -358,7 +360,7 @@ module.exports = class Cutecord extends Plugin {
       }
 
       // If Lurking and different user and not blocked and DND and (not muted and ALL MESSAGES)
-      var guildId = channel.getGuildId()
+      const guildId = channel.getGuildId()
       if (guildId !== null || isLurking(guildId)) {
         return false
       }
@@ -382,17 +384,17 @@ module.exports = class Cutecord extends Plugin {
       return true
     }
 
-    const { getChannel } = await getModule(['getChannel', 'getBasicChannel'])
-    const { MessageTypes } = await getModule(['MessageTypes', 'UploadTypes'])
-    const { getCurrentUser, getUser } = await getModule(['getCurrentUser', 'getUser'])
-    const { getChannelId } = await getModule(['getChannelId', 'getVoiceChannelId'])
-    const { getGuildId } = await getModule(['getGuildId', 'getLastSelectedGuildId'])
-    const { getCurrentSidebarChannelId } = await getModule(['getCurrentSidebarChannelId'])
-    const { THREAD_CHANNEL_TYPES, GUILD_VOCAL_CHANNEL_TYPES } = await getModule(['THREAD_CHANNEL_TYPES', 'GUILD_VOCAL_CHANNEL_TYPES'])
-    const { computeThreadNotificationSetting } = await getModule(['computeThreadNotificationSetting'])
-    const { ThreadMemberFlags } = await getModule(['ThreadMemberFlags'])
-    const { isRawMessageMentioned } = await getModule(['isRawMessageMentioned'])
-    const { getChannelId: getVoiceChannelId } = await getModule(['getChannelId', 'getAveragePing'])
+    const { getChannel } = await getModule([ 'getChannel', 'getBasicChannel' ])
+    const { MessageTypes } = await getModule([ 'MessageTypes', 'UploadTypes' ])
+    const { getCurrentUser, getUser } = await getModule([ 'getCurrentUser', 'getUser' ])
+    const { getChannelId } = await getModule([ 'getChannelId', 'getVoiceChannelId' ])
+    const { getGuildId } = await getModule([ 'getGuildId', 'getLastSelectedGuildId' ])
+    const { getCurrentSidebarChannelId } = await getModule([ 'getCurrentSidebarChannelId' ])
+    const { THREAD_CHANNEL_TYPES, GUILD_VOCAL_CHANNEL_TYPES } = await getModule([ 'THREAD_CHANNEL_TYPES', 'GUILD_VOCAL_CHANNEL_TYPES' ])
+    const { computeThreadNotificationSetting } = await getModule([ 'computeThreadNotificationSetting' ])
+    const { ThreadMemberFlags } = await getModule([ 'ThreadMemberFlags' ])
+    const { isRawMessageMentioned } = await getModule([ 'isRawMessageMentioned' ])
+    const { getChannelId: getVoiceChannelId } = await getModule([ 'getChannelId', 'getAveragePing' ])
 
     /**
 `    * Determines if a notification should be sent for the provided message. This logic is largely copied from Discord's
@@ -405,8 +407,8 @@ module.exports = class Cutecord extends Plugin {
      */
     function shouldNotify (message, channelId, lostFocus, r) {
       // Set variable defaults
-      lostFocus ??= true
-      r ??= false
+      lostFocus = lostFocus ?? true
+      r = r ?? false
 
       let channel = getChannel(channelId)
       if (message.type === MessageTypes.THREAD_STARTER_MESSAGES) {
@@ -417,7 +419,7 @@ module.exports = class Cutecord extends Plugin {
       const messageAuthor = getUser(message.author.id)
 
       // If the channel, current user, or message author aren't found then don't notify
-      if (null == channel || null == currentUser || null == messageAuthor) {
+      if (channel === null || currentUser === null || messageAuthor === null) {
         return false
       }
 
@@ -474,6 +476,9 @@ module.exports = class Cutecord extends Plugin {
       })
     }
 
-    return { shouldNotifyBase, shouldNotify }
+    return {
+      shouldNotifyBase,
+      shouldNotify
+    }
   }
 }
