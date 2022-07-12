@@ -174,6 +174,10 @@ module.exports = class Cutecord extends Plugin {
    * This is like this because it's the cleanest way I could think of to use the async version of getModule
    */
   async buildShouldNotify () {
+    // Allow using some properties within patched functions
+    const { settings } = this
+    const containsKeyword = this.containsKeyword.bind(this)
+
     // Fetch all required modules
     const { isLurking } = await getModule([ 'isLurking' ])
     const { isBlocked } = await getModule([ 'isBlocked' ])
@@ -287,16 +291,46 @@ module.exports = class Cutecord extends Plugin {
         return false
       }
 
-      if (!lostFocus) {
-        // Get the channel the user is currently looking at, if it's the same as the channel the message is from don't
-        // notify.
-        const currentChannelId = getChannelId(getGuildId())
-        if (currentChannelId === channel.id) {
+      // Get the channel the user is currently looking at, if it's the same as the channel the message is from don't
+      // notify.
+      const { customFocusDetection } = settings.get('advanced', defaults.advanced)
+      const currentChannelId = getChannelId(getGuildId())
+      const isCurrentChannel = currentChannelId === channel.id || getCurrentSidebarChannelId(currentChannelId)
+      if (customFocusDetection) {
+        if (document.hasFocus() && isCurrentChannel) {
           return false
         }
-        if (getCurrentSidebarChannelId(currentChannelId)) {
-          return false
-        }
+      } else if (!lostFocus && isCurrentChannel) {
+        return false
+      }
+
+      const meanies = settings.get('meanies', defaults.meanies)
+      if (meanies.guilds.includes(message.guild_id)) {
+        return false
+      }
+      if (meanies.channels.includes(channel.id)) {
+        return false
+      }
+      if (meanies.users.includes(messageAuthor.id)) {
+        return false
+      }
+      if (containsKeyword(message, meanies.keywords)) {
+        return false
+      }
+
+      const cutes = settings.get('cutes', defaults.cutes)
+      if (cutes.guilds.includes(message.guild_id)) {
+        return true
+      }
+      if (cutes.channels.includes(channel.id)) {
+        return true
+      }
+      if (cutes.users.includes(messageAuthor.id)) {
+        return true
+      }
+      if (containsKeyword(message, cutes.keywords)) {
+        console.log('contains keyword')
+        return true
       }
 
       // Compute thread notification settings
@@ -304,8 +338,6 @@ module.exports = class Cutecord extends Plugin {
         if (isMuted(channel.id)) {
           return false
         }
-
-        // TODO: Check uncutes here
 
         const notificationSettings = computeThreadNotificationSetting(channel)
         return notificationSettings !== ThreadMemberFlags.NO_MESSAGES && (
