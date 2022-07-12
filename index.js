@@ -312,6 +312,10 @@ module.exports = class Cutecord extends Plugin {
       const currentStatus = getStatus()
       const currentOverride = settings.get('statusOverrides', defaults.statusOverrides)[currentStatus]
 
+      // Used to determine if a message should go through when only-cute is
+      // selected.
+      let messageIsCute = false
+
       if (currentOverride === 'none') {
         return false
       } else if (currentOverride !== 'default') {
@@ -331,13 +335,13 @@ module.exports = class Cutecord extends Plugin {
 
         const cutes = settings.get('cutes', defaults.cutes)
         if (cutes.guilds.includes(message.guild_id)) {
-          return true
+          messageIsCute = true
         }
         if (cutes.channels.includes(channel.id)) {
-          return true
+          messageIsCute = true
         }
         if (cutes.users.includes(messageAuthor.id)) {
-          return true
+          messageIsCute = true
         }
         if (containsKeyword(message, cutes.keywords)) {
           console.log('contains keyword')
@@ -345,7 +349,7 @@ module.exports = class Cutecord extends Plugin {
         }
       }
 
-      if (currentOverride === 'only-cute') {
+      if (currentOverride === 'only-cute' && !messageIsCute) {
         return false
       }
 
