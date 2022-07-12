@@ -26,19 +26,13 @@ module.exports = class Cutecord extends Plugin {
       })
     }
 
+    const notifyModule = await getModule([ 'makeTextChatNotification' ])
     const notifyPatches = await this.buildShouldNotify()
     inject(
       'cutecord-shouldNotify',
-      await getModule([ 'makeTextChatNotification' ]),
+      notifyModule,
       'shouldNotify',
-      ([ msg, channel, n ], ret) => {
-        const statusOverrides = this.settings.get('statusOverrides', defaults.statusOverrides)
-        const currentOverride = statusOverrides[notifyPatches.getStatus()]
-        if (!statusOverrides.enabled || currentOverride === 'default') {
-          return ret
-        }
-        return notifyPatches.shouldNotify(msg, channel, n)
-      }
+      args => notifyPatches.shouldNotify(...args)
     )
 
     const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
@@ -73,6 +67,7 @@ module.exports = class Cutecord extends Plugin {
 
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
+    uninject('cutecord-shouldNotifyBase')
     uninject('cutecord-messageRender')
     uninject('cutecord-user-context-menu')
     uninject('cutecord-guild-context-menu')
