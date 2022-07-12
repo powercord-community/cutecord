@@ -18,7 +18,7 @@ module.exports = class Cutecord extends Plugin {
         color: 'green',
         message: `Cutecord ${version} successfully installed! Check out what's new!`,
         button: {
-          text: 'owo what\'s this?',
+          text: 'Open changelog',
           onClick: async () => {
             require('electron').shell.openExternal(`https://github.com/powercord-community/cutecord/blob/master/changelog.md#v${version.replace(/\./g, '')}`)
           }

@@ -295,7 +295,7 @@ module.exports = class Settings extends React.Component {
         value={this.state.statusOverrides.enabled}
         note={<>
           <p>
-            Use this to quickly enable or disable Cutecord notifications for all
+            Use this to quickly enable or disable cutecord notifications for all
             statuses.
           </p>
         </>}
