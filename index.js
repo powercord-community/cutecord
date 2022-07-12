@@ -31,7 +31,14 @@ module.exports = class Cutecord extends Plugin {
       'cutecord-shouldNotify',
       await getModule([ 'makeTextChatNotification' ]),
       'shouldNotify',
-      ([ msg, channel, n ]) => notifyPatches.shouldNotify(msg, channel, n)
+      ([ msg, channel, n ], ret) => {
+        const statusOverrides = this.settings.get('statusOverrides', defaults.statusOverrides)
+        const currentOverride = statusOverrides[notifyPatches.getStatus()]
+        if (!statusOverrides.enabled || currentOverride === 'default') {
+          return ret
+        }
+        return notifyPatches.shouldNotify(msg, channel, n)
+      }
     )
 
     const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
@@ -183,7 +190,6 @@ module.exports = class Cutecord extends Plugin {
     const { isBlocked } = await getModule([ 'isBlocked' ])
     const { isMuted } = await getModule([ 'isMuted', 'hasJoined' ])
     const { getStatus } = await getModule([ 'getStatus', 'getActivities' ])
-    const { StatusTypes } = await getModule([ 'StatusTypes' ])
     const { UserFlags } = await getModule([ 'UserFlags' ])
 
     const userSettings = await getModule([ 'allowAllMessages', 'isSuppressEveryoneEnabled', 'isSuppressRolesEnabled' ])
@@ -218,13 +224,15 @@ module.exports = class Cutecord extends Plugin {
         return false
       }
 
-      if (channel.isManaged()) {
+      const { managedChannels: allowManaged } = settings.get('advanced', defaults.advanced)
+      if (channel.isManaged() && !allowManaged) {
         return false
       }
 
       // If Lurking and different user and not blocked and DND and (not muted and ALL MESSAGES)
       const guildId = channel.getGuildId()
-      if (guildId !== null && isLurking(guildId)) {
+      const { lurkedGuilds } = settings.get('advanced', defaults.advanced)
+      if (guildId !== null && isLurking(guildId) && !lurkedGuilds) {
         return false
       }
 
@@ -236,9 +244,11 @@ module.exports = class Cutecord extends Plugin {
         return false
       }
 
-      if (!r && getStatus() === StatusTypes.DND) {
-        return false
-      }
+      // This is where Discord's status check would normally be, but we check later on to account for better
+      // customization.
+      // if (!r && getStatus() === StatusTypes.DND) {
+      //   return false
+      // }
 
       if (!o && allowNoMessages(channel)) {
         return false
@@ -304,33 +314,44 @@ module.exports = class Cutecord extends Plugin {
         return false
       }
 
-      const meanies = settings.get('meanies', defaults.meanies)
-      if (meanies.guilds.includes(message.guild_id)) {
+      const currentStatus = getStatus()
+      const currentOverride = settings.get('statusOverrides', defaults.statusOverrides)[currentStatus]
+
+      if (currentOverride === 'none') {
         return false
-      }
-      if (meanies.channels.includes(channel.id)) {
-        return false
-      }
-      if (meanies.users.includes(messageAuthor.id)) {
-        return false
-      }
-      if (containsKeyword(message, meanies.keywords)) {
-        return false
+      } else if (currentOverride !== 'default') {
+        const meanies = settings.get('meanies', defaults.meanies)
+        if (meanies.guilds.includes(message.guild_id)) {
+          return false
+        }
+        if (meanies.channels.includes(channel.id)) {
+          return false
+        }
+        if (meanies.users.includes(messageAuthor.id)) {
+          return false
+        }
+        if (containsKeyword(message, meanies.keywords)) {
+          return false
+        }
+
+        const cutes = settings.get('cutes', defaults.cutes)
+        if (cutes.guilds.includes(message.guild_id)) {
+          return true
+        }
+        if (cutes.channels.includes(channel.id)) {
+          return true
+        }
+        if (cutes.users.includes(messageAuthor.id)) {
+          return true
+        }
+        if (containsKeyword(message, cutes.keywords)) {
+          console.log('contains keyword')
+          return true
+        }
       }
 
-      const cutes = settings.get('cutes', defaults.cutes)
-      if (cutes.guilds.includes(message.guild_id)) {
-        return true
-      }
-      if (cutes.channels.includes(channel.id)) {
-        return true
-      }
-      if (cutes.users.includes(messageAuthor.id)) {
-        return true
-      }
-      if (containsKeyword(message, cutes.keywords)) {
-        console.log('contains keyword')
-        return true
+      if (currentOverride === 'only-cute') {
+        return false
       }
 
       // Compute thread notification settings
@@ -358,18 +379,20 @@ module.exports = class Cutecord extends Plugin {
 
       const suppressEveryone = isSuppressEveryoneEnabled(channel.getGuildId())
       const suppressRoles = isSuppressRolesEnabled(channel.getGuildId())
+      const mentions = settings.get('mentions', defaults.mentions)
 
       return isRawMessageMentioned({
         rawMessage: message,
         userId: currentUser.id,
-        suppressEveryone,
-        suppressRoles
+        suppressEveryone: mentions.everyone ? suppressEveryone : true,
+        suppressRoles: mentions.roles ? suppressRoles : true
       })
     }
 
     return {
       shouldNotifyBase,
-      shouldNotify
+      shouldNotify,
+      getStatus
     }
   }
 }
