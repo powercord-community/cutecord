@@ -4,8 +4,7 @@ const { Plugin } = require('powercord/entities')
 const { getModule, React } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
 const { findInReactTree, getOwnerInstance } = require('powercord/util')
-const Settings = require('./Settings.jsx')
-const NewSettings = require('./components/Settings.jsx')
+const Settings = require('./components/Settings.jsx')
 const manifest = require('./manifest.json')
 const defaults = require('./defaults.js')
 
@@ -195,81 +194,10 @@ module.exports = class Cutecord extends Plugin {
     )
     Menu.default.displayName = 'Menu'
 
-    /*
-    const GuildContextMenu = getModule((m) => m.default && m.default.displayName === 'GuildContextMenu', false)
-    inject(
-      'cutecord-guild-context-menu',
-      GuildContextMenu,
-      'default',
-      (args, res) => {
-        const [ { guild } ] = args
-        const { props: { children } } = res
-
-        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-guild')) {
-          return args
-        }
-
-        const addCuteItem = React.createElement(Menu.MenuItem, {
-          id: 'cutecord-add-cute-guild',
-          label: `${this.settings.get('cuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Cute`,
-          action: () => {
-            const cutes = this.settings.get('cuteGuilds', [])
-
-            if (cutes.includes(guild.id)) {
-              cutes.splice(cutes.indexOf(guild.id), 1)
-            } else {
-              cutes.push(guild.id)
-            }
-
-            this.settings.set('cuteGuilds', cutes)
-          }
-        })
-
-        const addMeanieItem = React.createElement(Menu.MenuItem, {
-          id: 'cutecord-add-meanie-guild',
-          label: `${this.settings.get('uncuteGuilds', []).includes(guild.id) ? 'Remove' : 'Add'} Meanie`,
-          action: () => {
-            const uncutes = this.settings.get('uncuteGuilds', [])
-
-            if (uncutes.includes(guild.id)) {
-              uncutes.splice(uncutes.indexOf(guild.id), 1)
-            } else {
-              uncutes.push(guild.id)
-            }
-
-            this.settings.set('uncuteGuilds', uncutes)
-          }
-        })
-
-        const muteItem = findInReactTree(children, child => child.props?.id === 'mute-guild')
-        const group = children.find(child => Array.isArray(child.props?.children) ? child.props?.children.includes(muteItem) : child.props?.children === muteItem)
-
-        if (!group) {
-          return res
-        }
-
-        if (!Array.isArray(group.props.children)) {
-          group.props.children = [ group.props.children ]
-        }
-
-        group.props.children.push(addCuteItem, addMeanieItem)
-
-        return res
-      }
-    )
-    GuildContextMenu.default.displayName = 'GuildContextMenu'
-    */
-
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
       label: 'Cutecord',
       render: Settings
-    })
-
-    powercord.api.settings.registerSettings('cutecord-testing', {
-      category: this.entityID,
-      label: 'Cutecord Beta',
-      render: NewSettings
     })
   }
 
@@ -283,6 +211,13 @@ module.exports = class Cutecord extends Plugin {
     powercord.api.settings.unregisterSettings('cutecord-testing')
   }
 
+  /**
+   * Check to see if the content of a given message contains any provided
+   * keywords.
+   * @param {Message} msg The message to check for keywords
+   * @param {String[]} keywords Keywords to search for within the message
+   * @returns {Boolean} Does the message contain a keyword?
+   */
   containsKeyword (msg, keywords) {
     for (const w of keywords) {
       if (w === '') {
