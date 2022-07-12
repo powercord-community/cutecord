@@ -90,14 +90,13 @@ module.exports = class Cutecord extends Plugin {
       }
 
       let { content } = msg
-      const caseSensitive = this.settings.get('caseSensitive', false)
-      if (!caseSensitive) {
+      const keywordDetection = this.settings.get('keywordDetection', defaults.keywordDetection)
+      if (!keywordDetection.caseSensitive) {
         content = content.toLowerCase()
         keywords = keywords.map(k => k.toLowerCase())
       }
 
-      const detectionMethod = this.settings.get('detectionMethod', 'word')
-      if (detectionMethod === 'word') {
+      if (keywordDetection.method === 'word') {
         if (content.match(`(^|[\\s/?.,'":()\\-_\\*!\`])${w}([\\s/?.,'":()\\-_\\*!\`]|$)`)) {
           return true
         }
