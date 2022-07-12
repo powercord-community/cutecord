@@ -84,16 +84,16 @@ module.exports = class Cutecord extends Plugin {
    * @returns {Boolean} Does the message contain a keyword?
    */
   containsKeyword (msg, keywords) {
+    let { content } = msg
+    const keywordDetection = this.settings.get('keywordDetection', defaults.keywordDetection)
+    if (!keywordDetection.caseSensitive) {
+      content = content.toLowerCase()
+      keywords = keywords.map(k => k.toLowerCase())
+    }
+
     for (const w of keywords) {
       if (w === '') {
         continue
-      }
-
-      let { content } = msg
-      const keywordDetection = this.settings.get('keywordDetection', defaults.keywordDetection)
-      if (!keywordDetection.caseSensitive) {
-        content = content.toLowerCase()
-        keywords = keywords.map(k => k.toLowerCase())
       }
 
       if (keywordDetection.method === 'word') {
