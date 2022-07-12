@@ -361,7 +361,7 @@ module.exports = class Cutecord extends Plugin {
 
       // If Lurking and different user and not blocked and DND and (not muted and ALL MESSAGES)
       const guildId = channel.getGuildId()
-      if (guildId !== null || isLurking(guildId)) {
+      if (guildId !== null && isLurking(guildId)) {
         return false
       }
 
