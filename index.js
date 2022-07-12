@@ -1,82 +1,18 @@
 /* eslint-disable semi */
 
 const { Plugin } = require('powercord/entities')
-const { getModule, React } = require('powercord/webpack')
+const { getModule } = require('powercord/webpack')
 const { inject, uninject } = require('powercord/injector')
-const { findInReactTree, getOwnerInstance } = require('powercord/util')
 const Settings = require('./components/Settings.jsx')
 const manifest = require('./manifest.json')
 const defaults = require('./defaults.js')
-
-/*
- * Get all the modules we need (there's a lot)
- * TODO: I should really swap over to promises but oh well
- */
-const { getCurrentUser } = getModule([ 'getCurrentUser' ], false)
 
 module.exports = class Cutecord extends Plugin {
   async startPlugin () {
     // Let people who already have the plugin know about the updates.
     const { version } = manifest
     if (this.settings.get('version') !== version) {
-      // Check if any configuration needs to be migrated
-      const oldVersion = this.settings.get('version')
-      // eslint-disable-next-line no-unused-vars
-      const [ major, minor, patch ] = oldVersion.split('.').map(Number)
-      if (major < 4) {
-        this.log(`Out of date configuration found, migrating automatically (${oldVersion} -> ${version})`)
-
-        const migratedSettings = {
-          cutes: {
-            guilds: this.settings.get('cuteGuilds', []),
-            channels: this.settings.get('cuteChannels', []),
-            users: this.settings.get('cuteUsers', []),
-            keywords: this.settings.get('cuteWords', [])
-          },
-          meanies: {
-            guilds: this.settings.get('uncuteGuilds', []),
-            channels: this.settings.get('uncuteChannels', []),
-            users: this.settings.get('uncuteUsers', []),
-            keywords: this.settings.get('uncuteWords', [])
-          },
-          statusOverrides: {
-            enabled: this.settings.get('overrides', 'cute') !== 'default',
-            online: this.settings.get('overrides', 'cute'),
-            idle: this.settings.get('overrides', 'cute'),
-            dnd: this.settings.get('overrideDND', false) ? 'cute' : 'only-cute',
-            streaming: this.settings.get('overrides', 'only-cute'),
-            invisible: this.settings.get('invisibleIsDND', false) ? 'none' : this.settings.get('overrides', 'cute')
-          },
-          keywordDetection: {
-            method: this.settings.get('detectionMethod', 'word'),
-            caseSensitive: this.settings.get('caseSensitive', false)
-          },
-          mentions: {
-            everyone: !this.settings.get('blockEveryone', false),
-            roles: !this.settings.get('blockEveryone', false)
-          },
-          advanced: {
-            highlightKeywords: this.settings.get('highlightKeywords', true),
-            lurkedGuilds: this.settings.get('lurkedGuilds', false),
-            managedChannels: this.settings.get('managedChannels', false),
-            customFocusDetection: this.settings.get('customFocusDetection', false)
-          },
-          oldSettings: {
-            [oldVersion]: this.settings.getKeys().reduce((obj, key) => {
-              obj[key] = this.settings.get(key)
-              return obj
-            }, {})
-          }
-        }
-
-        // Clean up all previous settings
-        this.settings.getKeys().forEach(this.settings.delete)
-
-        // Store the migrated settings
-        for (const key in migratedSettings) {
-          this.settings.set(key, migratedSettings[key])
-        }
-      }
+      this.migrateSettings()
       this.settings.set('version', version)
       powercord.api.notices.sendAnnouncement('cutecord-first-welcome', {
         color: 'green',
@@ -90,17 +26,17 @@ module.exports = class Cutecord extends Plugin {
       })
     }
 
-    const patches = await this.buildShouldNotify()
+    const notifyPatches = await this.buildShouldNotify()
     inject(
       'cutecord-shouldNotify',
       await getModule([ 'makeTextChatNotification' ]),
       'shouldNotify',
-      ([ msg, channel, n ]) => patches.shouldNotify(msg, channel, n)
+      ([ msg, channel, n ]) => notifyPatches.shouldNotify(msg, channel, n)
     )
 
     const { default: MessageRender } = await getModule([ 'getElementFromMessageId' ])
     inject(
-      'cutecord-messagerender',
+      'cutecord-messageRender',
       MessageRender,
       'type',
       (args) => {
@@ -121,79 +57,6 @@ module.exports = class Cutecord extends Plugin {
       true
     )
 
-    const Menu = await getModule([ 'MenuItem' ])
-    inject(
-      'cutecord-user-context-menu',
-      Menu,
-      'default',
-      (args) => {
-        const [ { navId, children } ] = args
-        if (navId !== 'user-context') {
-          return args
-        }
-
-        if (findInReactTree(children, child => child.props?.id === 'cutecord-add-cute-user')) {
-          return args
-        }
-
-        let user
-
-        if (document.querySelector('#user-context')) {
-          const instance = getOwnerInstance(document.querySelector('#user-context'))
-          user = (instance?._reactInternals || instance?._reactInternalFiber)?.return?.memoizedProps?.user
-        }
-
-        if (!user || user.id === getCurrentUser().id) {
-          return args
-        }
-
-        const addCuteItem = React.createElement(Menu.MenuItem, {
-          id: 'cutecord-add-cute-user',
-          label: `${this.settings.get('cuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Cute`,
-          action: () => {
-            const cutes = this.settings.get('cuteUsers', [])
-
-            if (cutes.includes(user.id)) {
-              cutes.splice(cutes.indexOf(user.id), 1)
-            } else {
-              cutes.push(user.id)
-            }
-
-            this.settings.set('cuteUsers', cutes)
-          }
-        })
-
-        const addMeanieItem = React.createElement(Menu.MenuItem, {
-          id: 'cutecord-add-meanie-user',
-          label: `${this.settings.get('uncuteUsers', []).includes(user.id) ? 'Remove' : 'Add'} Meanie`,
-          action: () => {
-            const uncutes = this.settings.get('uncuteUsers', [])
-
-            if (uncutes.includes(user.id)) {
-              uncutes.splice(uncutes.indexOf(user.id), 1)
-            } else {
-              uncutes.push(user.id)
-            }
-
-            this.settings.set('uncuteUsers', uncutes)
-          }
-        })
-
-        const blockItem = findInReactTree(children, child => child.props?.id === 'block')
-        const group = children.find(child => child.props?.children?.includes?.(blockItem))
-
-        if (!group) {
-          return args
-        }
-
-        group.props.children.push(addCuteItem, addMeanieItem)
-
-        return args
-      },
-      true
-    )
-    Menu.default.displayName = 'Menu'
-
     powercord.api.settings.registerSettings('cutecord', {
       category: this.entityID,
       label: 'Cutecord',
@@ -203,7 +66,7 @@ module.exports = class Cutecord extends Plugin {
 
   pluginWillUnload () {
     uninject('cutecord-shouldNotify')
-    uninject('cutecord-messagerender')
+    uninject('cutecord-messageRender')
     uninject('cutecord-user-context-menu')
     uninject('cutecord-guild-context-menu')
 
@@ -244,6 +107,67 @@ module.exports = class Cutecord extends Plugin {
     }
 
     return false
+  }
+
+  migrateSettings () {
+    // Check if any configuration needs to be migrated
+    const oldVersion = this.settings.get('version')
+    // eslint-disable-next-line no-unused-vars
+    const [ major, minor, patch ] = oldVersion.split('.').map(Number)
+    if (major < 4) {
+      this.log(`Out of date configuration found, migrating automatically (${oldVersion} -> v4)`)
+
+      const migratedSettings = {
+        cutes: {
+          guilds: this.settings.get('cuteGuilds', []),
+          channels: this.settings.get('cuteChannels', []),
+          users: this.settings.get('cuteUsers', []),
+          keywords: this.settings.get('cuteWords', [])
+        },
+        meanies: {
+          guilds: this.settings.get('uncuteGuilds', []),
+          channels: this.settings.get('uncuteChannels', []),
+          users: this.settings.get('uncuteUsers', []),
+          keywords: this.settings.get('uncuteWords', [])
+        },
+        statusOverrides: {
+          enabled: this.settings.get('overrides', 'cute') !== 'default',
+          online: this.settings.get('overrides', 'cute'),
+          idle: this.settings.get('overrides', 'cute'),
+          dnd: this.settings.get('overrideDND', false) ? 'cute' : 'only-cute',
+          streaming: this.settings.get('overrides', 'only-cute'),
+          invisible: this.settings.get('invisibleIsDND', false) ? 'none' : this.settings.get('overrides', 'cute')
+        },
+        keywordDetection: {
+          method: this.settings.get('detectionMethod', 'word'),
+          caseSensitive: this.settings.get('caseSensitive', false)
+        },
+        mentions: {
+          everyone: !this.settings.get('blockEveryone', false),
+          roles: !this.settings.get('blockEveryone', false)
+        },
+        advanced: {
+          highlightKeywords: this.settings.get('highlightKeywords', true),
+          lurkedGuilds: this.settings.get('lurkedGuilds', false),
+          managedChannels: this.settings.get('managedChannels', false),
+          customFocusDetection: this.settings.get('customFocusDetection', false)
+        },
+        oldSettings: {
+          [oldVersion]: this.settings.getKeys().reduce((obj, key) => {
+            obj[key] = this.settings.get(key)
+            return obj
+          }, {})
+        }
+      }
+
+      // Clean up all previous settings
+      this.settings.getKeys().forEach(this.settings.delete)
+
+      // Store the migrated settings
+      for (const key in migratedSettings) {
+        this.settings.set(key, migratedSettings[key])
+      }
+    }
   }
 
   /**
