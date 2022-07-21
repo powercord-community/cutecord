@@ -112,7 +112,7 @@ module.exports = class Cutecord extends Plugin {
 
   migrateSettings () {
     // Check if any configuration needs to be migrated
-    const oldVersion = this.settings.get('version')
+    const oldVersion = this.settings.get('version', manifest.version)
     // eslint-disable-next-line no-unused-vars
     const [ major, minor, patch ] = oldVersion.split('.').map(Number)
     if (major < 4) {
